@@ -5,6 +5,12 @@
 }
 
 @font-face {
+  font-family: "HanYiShenQiTuJian";
+  src: url("/fonts/hanyishenqitujianjianti.ttf")
+}
+
+
+@font-face {
   font-family: "SportsJersey";
   src: url("/fonts/SportsJersey.woff") format("woff");
   src: url("/fonts/SportsJersey.woff2") format("woff2");
@@ -12,7 +18,7 @@
 }
 
 :root {
-  font-family: var(--go-banana);
+  font-family: var(--chs-font);
   font-size: 1.1em;
   letter-spacing: 1px;
 
@@ -20,6 +26,7 @@
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
+  --chs-font: "HanYiShenQiTuJian","Go Banana", sans-serif;
   --go-banana: "Go Banana", sans-serif;
   --sports-jersey: "SportsJersey", "Go Banana", sans-serif;
   --header-height: 50px;

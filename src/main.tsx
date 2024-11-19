@@ -12,6 +12,8 @@ import SpoilerWarning from "./SpoilerWarning";
 import CustomErrorBoundary from "./shared/CustomErrorBoundary";
 import { ErrorBoundary } from "react-error-boundary";
 
+import './i18n';
+
 const container = document.getElementById("root");
 
 if (container == null) {

@@ -16,23 +16,22 @@ export default function SpoilerWarning(props: {
   ) : (
     <div className="commoncontainer">
       <img src="/gameassets/sprExclam_1.png" />
-      <h1>Notice!</h1>
+      <h1>嘿！注意啦！</h1>
       <p>
-        {site} is an unofficial resource for Beastieball!
+        {site} 不是 Beastieball 的官方站点！
         <br />
-        It may contain content that doesn't appear in the game, posting of this
-        content in official Wishes Unlimited channels (e.g Wishes Unlimited
-        Discord) is not allowed as per Wishes Unlimited's rules.
+        也就是说，这里可能出现游戏内未包含的内容，
+        请不要把这里的内容转发到 Wishes Unlimited 的官方社区
+        （比如 Wishes Unlimited 的 Discord 服务器），
+        这样会违反 Wishes Unlimited 的社群规范。
         <br />
-        {site} will also contain spoilers for the full game, in order to avoid
-        spoilers you can set to only show beasties/characters you've clicked on.
-        All other beasties/characters will have images and names hidden until
-        you click on them.
+        {site} 包含对完整游戏的剧透！你可以在此处设置只显示点击过的 Beastie/角色。
+        每个你没有点进去过的 Beastie/角色都不会显示图像或名称。
       </p>
       <SpoilerOptions />
       <br />
       <p>
-        <button onClick={() => setSpoilersOk(true)}>Confirm</button>
+        <button onClick={() => setSpoilersOk(true)}>确认进入</button>
       </p>
     </div>
   );

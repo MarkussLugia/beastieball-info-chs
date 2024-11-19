@@ -15,15 +15,15 @@ export default function SpoilerOptions() {
   return (
     <div>
       <label>
-        Show:{" "}
+        防剧透设置：{" "}
         <select
           value={spoilerMode || SpoilerMode.OnlySeen}
           onChange={(event) =>
             setSpoilerMode(Number(event.currentTarget.value))
           }
         >
-          <option value={SpoilerMode.OnlySeen}>Seen Beasties/Characters</option>
-          <option value={SpoilerMode.All}>All Beasties/Characters</option>
+          <option value={SpoilerMode.OnlySeen}>仅展示查看过的 Beastie/角色</option>
+          <option value={SpoilerMode.All}>显示全部 Beastie/角色</option>
         </select>
       </label>
       <br />
@@ -34,7 +34,7 @@ export default function SpoilerOptions() {
             setFriendSpoiler(FRIEND_SPOILERS);
           }}
         >
-          Reset Seen Beasties/Characters
+          清除查看过的 Beastie/角色记录
         </button>
       ) : null}
     </div>

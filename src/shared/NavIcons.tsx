@@ -12,8 +12,8 @@ export default function NavIcons(): React.ReactElement {
         className={styles.navIcon}
         target="_blank"
         rel="noreferrer"
-        title="Open GitHub Repository"
-        href="https://github.com/JdavisBro/beastieball"
+        title="打开 GitHub 源代码仓库"
+        href="https://github.com/MarkussLugia/beastieball-info-chs"
       >
         <img
           className={styles.externallinklogo}
