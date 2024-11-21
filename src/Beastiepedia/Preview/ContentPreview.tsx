@@ -50,12 +50,22 @@ export default function ContentPreview(props: Props): React.ReactNode {
 
   useEffect(() => setAlt(-1), [props.beastiedata.id]);
 
-  const beastiesprite = SPRITE_INFO[props.beastiedata.spr] as Sprite;
-  const drawnname =
-    alt == -1 && props.beastiedata.spr_alt.length
-      ? props.beastiedata.spr
-      : (props.beastiedata.spr_alt[alt] ?? props.beastiedata.spr);
-  const drawnsprite = SPRITE_INFO[drawnname];
+  const beastiesprite = useMemo<Sprite>(() => SPRITE_INFO[props.beastiedata.spr], [props.beastiedata.spr]);
+  // const beastiesprite = SPRITE_INFO[props.beastiedata.spr] as Sprite;
+
+  // TODO fix bbox unintentionally being changed causing bad resizing
+  useEffect(() => {
+    console.log("bbox changed");
+    
+  }, [beastiesprite.bbox,beastiesprite]);
+
+  const drawnname = useMemo(() => {
+    return alt == -1 && props.beastiedata.spr_alt.length
+    ? props.beastiedata.spr
+    : (props.beastiedata.spr_alt[alt] ?? props.beastiedata.spr);
+  }, [props.beastiedata, alt]);
+
+  const drawnsprite = useMemo(() => SPRITE_INFO[drawnname], [drawnname]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
@@ -134,7 +144,7 @@ export default function ContentPreview(props: Props): React.ReactNode {
           : drawnsprite.height / bbox.height;
       return `scale(${beastiescale}) translate(${((-bbox.x - bbox.width / 2 + drawnsprite.width / 2) / drawnsprite.width) * 100}%, ${((-bbox.y - bbox.height / 2 + drawnsprite.height / 2) / drawnsprite.height) * 100}%)`;
     },
-    [drawnsprite],
+    [drawnsprite,beastiesprite.bbox],
   );
 
   const getAnimBboxAndLoaded = useCallback(() => {
