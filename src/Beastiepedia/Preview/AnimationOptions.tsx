@@ -19,6 +19,21 @@ type Props = {
   setAlt: React.Dispatch<React.SetStateAction<number>>;
 };
 
+const animationNameCHS: { [key: string]: string } = {
+  idle: "待机",
+  move: "移动",
+  ready: "就绪",
+  spike: "扣杀",
+  volley: "击球",
+  good: "成功了！",
+  bad: "失败了…",
+  fall: "跌倒",
+  air: "跃起",
+  stop: "立定",
+  menu: "菜单",
+  hug: "抱抱",
+};
+
 export default function AnimationOptions(props: Props): React.ReactElement {
   return (
     <>
@@ -44,7 +59,7 @@ export default function AnimationOptions(props: Props): React.ReactElement {
             <br />
           </>
         ) : null}
-        <label htmlFor="anim">Animation: </label>
+        <label htmlFor="anim">动画选择: </label>
         <select
           name="anim"
           id="anim"
@@ -56,7 +71,7 @@ export default function AnimationOptions(props: Props): React.ReactElement {
         >
           {props.animationList.map((value: string) => (
             <option value={value} key={value}>
-              {value.charAt(0).toUpperCase() + value.slice(1)}
+              {animationNameCHS[value] || value}
             </option>
           ))}
         </select>
