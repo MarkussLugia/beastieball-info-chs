@@ -59,7 +59,7 @@ export default function Beastiepedia(): React.ReactNode {
   return (
     <div className={styles.container}>
       <OpenGraph
-        title={beastiedata ? `${beastie} - Beastiepedia` : "Beastiepedia"}
+        title={beastiedata ? `${beastie} - Beastie 图鉴` : "Beastie 图鉴"}
         image={
           beastiedata
             ? `icons/${beastiedata.name}.png`
@@ -73,7 +73,7 @@ export default function Beastiepedia(): React.ReactNode {
         }
       />
       <Header
-        title={(beastie ? `${beastie} - ` : "") + "Beastiepedia"}
+        title={(beastie ? `${beastie} - ` : "") + "Beastie 图鉴"}
         menuButton={true}
         menuButtonState={sidebarvisible}
         onMenuButtonPressed={() => setSidebarvisible((visible) => !visible)}
@@ -109,11 +109,11 @@ export default function Beastiepedia(): React.ReactNode {
               </>
             ) : (
               <h1 className={styles.notselectedtext}>
-                No Beastie Selected
+                未选中 Beastie
                 <br />
                 {sidebarvisible
-                  ? "Select a beastie in the sidebar"
-                  : "Select a beastie by toggling the menu in the top left"}
+                  ? "在左侧栏选中一个 Beastie 以查看详情"
+                  : "在左上角菜单中选择一个 Beastie 以查看详情"}
                 .
               </h1>
             )}
