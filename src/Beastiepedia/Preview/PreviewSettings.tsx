@@ -21,7 +21,7 @@ export default function PreviewSettings(props: Props): React.ReactElement {
   const ns = "beastiepedia.previewSettings";
   return (
     <>
-      <InfoBox header="Settings" className={styles.previewSettings}>
+      <InfoBox header={t(`${ns}.title`)} className={styles.previewSettings}>
         <div className={styles.middlealign}>
           <button onClick={() => props.downloadImage()}>
             {t(`${ns}.savePNG`)}

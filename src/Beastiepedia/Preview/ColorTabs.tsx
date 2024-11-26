@@ -370,6 +370,9 @@ function BeastieColorTabContent(props: {
   colorChange: (change_index: number, color: number[]) => void;
   linkedColors: Record<string, number>;
 }) {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.colorTabs";
+
   const current = props.tab == props.currentTab;
 
   const colorValues = useRef(props.colorMax.map(() => 0.5));
@@ -530,10 +533,10 @@ function BeastieColorTabContent(props: {
         ) : null,
       )}
       <button onClick={() => setColors(colorMax.map(() => 0.5))}>
-        Reset Colors
+        {t(`${ns}.reset`)}
       </button>
       <button onClick={() => setColors(colorMax.map(() => Math.random()))}>
-        Randomize Colors
+        {t(`${ns}.random`)}
       </button>
       <button
         onClick={() => {
@@ -545,7 +548,7 @@ function BeastieColorTabContent(props: {
           navigator.clipboard.writeText(url.toString());
         }}
       >
-        Copy Link with Colors
+        {t(`${ns}.copyLink`)}
       </button>
     </div>
   );
