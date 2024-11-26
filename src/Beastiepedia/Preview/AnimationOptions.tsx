@@ -1,6 +1,7 @@
 import { BeastieType } from "../../data/BeastieData";
 import InfoBox from "../../shared/InfoBox";
 import styles from "./ContentPreview.module.css";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   paused: boolean;
@@ -19,28 +20,15 @@ type Props = {
   setAlt: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const animationNameCHS: { [key: string]: string } = {
-  idle: "待机",
-  move: "移动",
-  ready: "就绪",
-  spike: "扣杀",
-  volley: "击球",
-  good: "成功了！",
-  bad: "失败了…",
-  fall: "跌倒",
-  air: "跃起",
-  stop: "立定",
-  menu: "菜单",
-  hug: "抱抱",
-};
-
 export default function AnimationOptions(props: Props): React.ReactElement {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.animationOptions";
   return (
     <>
-      <InfoBox header="Animation">
+      <InfoBox header={t(`${ns}.title`)}>
         {props.beastiedata.spr_alt.length ? (
           <>
-            <label htmlFor="altSprite">Alt Sprite: </label>
+            <label htmlFor="altSprite">{t(`${ns}.altSprite`)}</label>
             <select
               name="altSprite"
               id="altSprite"
@@ -49,17 +37,17 @@ export default function AnimationOptions(props: Props): React.ReactElement {
               }
               value={props.alt}
             >
-              <option value="-1">Normal</option>
+              <option value="-1">{t(`${ns}.altSpriteNormal`)}</option>
               {props.beastiedata.spr_alt.map((sprindex, index) => (
                 <option key={sprindex} value={index}>
-                  Alt {index + 1}
+                  {t(`${ns}.altSpriteAlt`)} {index + 1}
                 </option>
               ))}
             </select>
             <br />
           </>
         ) : null}
-        <label htmlFor="anim">动画选择: </label>
+        <label htmlFor="anim">{t(`${ns}.AnimationOptionTitle`)}</label>
         <select
           name="anim"
           id="anim"
@@ -71,7 +59,7 @@ export default function AnimationOptions(props: Props): React.ReactElement {
         >
           {props.animationList.map((value: string) => (
             <option value={value} key={value}>
-              {animationNameCHS[value] || value}
+              {t(`${ns}.animationNames.${value}`)}
             </option>
           ))}
         </select>
@@ -82,11 +70,11 @@ export default function AnimationOptions(props: Props): React.ReactElement {
             props.setPaused(!props.paused);
           }}
         >
-          {props.paused ? "PLAY" : "PAUSE"}
+          {props.paused ? t(`${ns}.play`) : t(`${ns}.pause`)}
         </button>
         <button onClick={() => props.changeFrame(1)}>{"->"}</button>
         <br />
-        <label htmlFor="framenum">Frame: </label>
+        <label htmlFor="framenum">{t(`${ns}.framenum`)}</label>
         <input
           ref={props.frameInputRef}
           type="number"
@@ -100,7 +88,7 @@ export default function AnimationOptions(props: Props): React.ReactElement {
           }}
         />
         <div className={styles.middlealign}>
-          <label htmlFor="speed">Speed: x</label>
+          <label htmlFor="speed">{t(`${ns}.speed`)}</label>
           <input
             type="number"
             name="speed"
@@ -113,7 +101,7 @@ export default function AnimationOptions(props: Props): React.ReactElement {
               props.setUserSpeed(Number(event.currentTarget.value))
             }
           />
-          <button onClick={() => props.setUserSpeed(1)}>Reset</button>
+          <button onClick={() => props.setUserSpeed(1)}>{t(`${ns}.reset`)}</button>
         </div>
       </InfoBox>
     </>
