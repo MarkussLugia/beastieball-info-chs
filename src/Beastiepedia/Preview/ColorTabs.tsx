@@ -12,6 +12,8 @@ import { useLocalStorage } from "usehooks-ts";
 import BEASTIE_DATA from "../../data/BeastieData";
 import BeastieSelect from "../../shared/BeastieSelect";
 
+import { useTranslation } from "react-i18next";
+
 function defaultColor(
   colors: number[],
   beastieColors: Array<{ array: BeastieColorSet }>,
@@ -50,6 +52,9 @@ type StoredType = {
 };
 
 export default function ColorTabs(props: Props): React.ReactNode {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.colorTabs";
+
   const colorChange = props.colorChange;
 
   const [diffBeastieColors, setDiffBeastieColors] = useState("none");
@@ -199,27 +204,27 @@ export default function ColorTabs(props: Props): React.ReactNode {
           className={currentTab == "color" ? styles.selectedtab : ""}
           onClick={() => setCurrentTab("color")}
         >
-          Regular
+          {t(`${ns}.tabColor`)}
         </button>
         {beastiedata.colors2 ? (
           <button
             className={currentTab == "color2" ? styles.selectedtab : ""}
             onClick={() => setCurrentTab("color2")}
           >
-            Variant
+            {t(`${ns}.tabColor2`)}
           </button>
         ) : null}
         <button
           className={currentTab == "shiny" ? styles.selectedtab : ""}
           onClick={() => setCurrentTab("shiny")}
         >
-          Raremorph
+          {t(`${ns}.tabShiny`)}
         </button>
         <button
           className={currentTab == "custom" ? styles.selectedtab : ""}
           onClick={() => setCurrentTab("custom")}
         >
-          Custom
+          {t(`${ns}.tabCustom`)}
         </button>
       </div>
       <div className={styles.tabcontainer}>
@@ -304,7 +309,7 @@ export default function ColorTabs(props: Props): React.ReactNode {
               )
             }
           >
-            Reset Colors
+            {t(`${ns}.reset`)}
           </button>
           <button
             onClick={() =>
@@ -321,7 +326,7 @@ export default function ColorTabs(props: Props): React.ReactNode {
               )
             }
           >
-            Randomize Colors
+            {t(`${ns}.random`)}
           </button>
           <button
             onClick={() => {
@@ -333,11 +338,11 @@ export default function ColorTabs(props: Props): React.ReactNode {
               navigator.clipboard.writeText(url.toString());
             }}
           >
-            Copy Link with Colors
+            {t(`${ns}.copyLink`)}
           </button>
         </div>
         <label>
-          Other Beastie Colors:{" "}
+          {t(`${ns}.otherBeastie`)}
           <BeastieSelect
             beastieId={diffBeastieColors}
             setBeastieId={(beastieId: undefined | string) =>

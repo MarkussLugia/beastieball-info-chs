@@ -1,6 +1,8 @@
 import InfoBox from "../../shared/InfoBox";
 import styles from "./ContentPreview.module.css";
 
+import { useTranslation } from "react-i18next";
+
 type Props = {
   downloadImage: (copy?: boolean) => void;
   downloadGif: () => void;
@@ -15,18 +17,24 @@ type Props = {
 };
 
 export default function PreviewSettings(props: Props): React.ReactElement {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.previewSettings";
   return (
     <>
       <InfoBox header="Settings" className={styles.previewSettings}>
         <div className={styles.middlealign}>
-          <button onClick={() => props.downloadImage()}>Save PNG</button>
-          <button onClick={() => props.downloadImage(true)}>Copy PNG</button>
+          <button onClick={() => props.downloadImage()}>
+            {t(`${ns}.savePNG`)}
+          </button>
+          <button onClick={() => props.downloadImage(true)}>
+            {t(`${ns}.copyPNG`)}
+          </button>
           <button onClick={props.downloadGif} disabled={props.gifDisabled}>
-            Save GIF
+            {t(`${ns}.saveGIF`)}
           </button>
           {props.userSpeed > 1.2 ? (
             <span
-              title="When using a high speed, GIFs might not save the speed correctly."
+              title={t(`${ns}.speedNotify`)}
               style={{ cursor: "help", userSelect: "none" }}
             >
               ⚠
@@ -34,7 +42,7 @@ export default function PreviewSettings(props: Props): React.ReactElement {
           ) : null}
         </div>
         <label>
-          Display Size:{" "}
+          {t(`${ns}.displaySize`)}
           <input
             type="range"
             min={25}
@@ -53,7 +61,7 @@ export default function PreviewSettings(props: Props): React.ReactElement {
         </label>
         <div className={styles.middlealign}>
           <label htmlFor="whitebg" style={{ userSelect: "none" }}>
-            Background:
+            {t(`${ns}.background`)}
             <input
               id="whitebg"
               type="checkbox"
@@ -71,7 +79,7 @@ export default function PreviewSettings(props: Props): React.ReactElement {
           </label>
         </div>
         <label>
-          Crop to Beastie:
+          {t(`${ns}.crop`)}
           <input
             type="checkbox"
             defaultChecked={props.fitBeastie}
