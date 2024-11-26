@@ -1,28 +1,32 @@
 import { NavigationMenu, NavigationMenuOption } from "./shared/NavigationMenu";
 
+import { useTranslation } from "react-i18next";
+
 export default function Home(): React.ReactNode {
+  const { t } = useTranslation();
+
   return (
     <NavigationMenu>
       <NavigationMenuOption
-        text={"招式图鉴"}
+        text={t("playdex.title")}
         image={"/gameassets/sprMainmenu/6.png"}
         hoverImage={"/gameassets/sprMainmenu/7.png"}
         location={"/playdex/"}
       />
       <NavigationMenuOption
-        text={"Beastie 图鉴"}
+        text={t("beastiepedia.title")}
         image={"/gameassets/sprMainmenu/0.png"}
         hoverImage={"/gameassets/sprMainmenu/1.png"}
         location={"/beastiepedia/"}
       />
       <NavigationMenuOption
-        text={"地图"}
+        text={t("map.title")}
         image={"/gameassets/sprMainmenu/2.png"}
         hoverImage={"/gameassets/sprMainmenu/3.png"}
         location={"/map/"}
       />
       <NavigationMenuOption
-        text={"推荐的配队"}
+        text={t("teams.title")}
         image={"/gameassets/sprMainmenu/20.png"}
         hoverImage={"/gameassets/sprMainmenu/21.png"}
         location={"/teams/"}

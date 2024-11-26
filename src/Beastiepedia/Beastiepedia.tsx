@@ -13,6 +13,8 @@ import ContentPreview from "./Preview/ContentPreview";
 import ContentInfo from "./Info/ContentInfo";
 import { useSpoilerSeen } from "../shared/useSpoiler";
 
+import { useTranslation } from "react-i18next";
+
 declare global {
   interface Window {
     BEASTIE_DATA: Map<string, BeastieType>;
@@ -21,6 +23,9 @@ declare global {
 }
 
 export default function Beastiepedia(): React.ReactNode {
+
+  const { t } = useTranslation();
+
   const orientation = useScreenOrientation();
   const { beastie }: { beastie?: string } = useParams();
 
@@ -59,7 +64,7 @@ export default function Beastiepedia(): React.ReactNode {
   return (
     <div className={styles.container}>
       <OpenGraph
-        title={beastiedata ? `${beastie} - Beastie 图鉴` : "Beastie 图鉴"}
+        title={beastiedata ? `${beastie} - ${t("beastiepedia.title")}` : t("beastiepedia.title")}
         image={
           beastiedata
             ? `icons/${beastiedata.name}.png`
@@ -73,7 +78,7 @@ export default function Beastiepedia(): React.ReactNode {
         }
       />
       <Header
-        title={(beastie ? `${beastie} - ` : "") + "Beastie 图鉴"}
+        title={(beastie ? `${beastie} - ` : "") + t("beastiepedia.title")}
         menuButton={true}
         menuButtonState={sidebarvisible}
         onMenuButtonPressed={() => setSidebarvisible((visible) => !visible)}
@@ -109,11 +114,11 @@ export default function Beastiepedia(): React.ReactNode {
               </>
             ) : (
               <h1 className={styles.notselectedtext}>
-                未选中 Beastie
+                {t("beastiepedia.noSelected.prompt")}
                 <br />
                 {sidebarvisible
-                  ? "在左侧栏选中一个 Beastie 以查看详情"
-                  : "在左上角菜单中选择一个 Beastie 以查看详情"}
+                  ? t("beastiepedia.noSelected.sidebarVisible")
+                  : t("beastiepedia.noSelected.sidebarHidden")}
                 .
               </h1>
             )}
