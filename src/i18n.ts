@@ -18,6 +18,12 @@ i18n
           playdex: { title: "招式图鉴" },
           beastiepedia: {
             title: "Beastie 图鉴",
+            contentPreview:{
+              loading: "加载中",
+              glError: "WebGL 错误",
+              canvasPlaceholder: "Beastie 预览",
+              previewOptions: "预览选项"
+            },
             noSelected: {
               prompt: "未选中 Beastie",
               sidebarVisible: "在左侧栏选中一个 Beastie 以查看详情",

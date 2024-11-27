@@ -29,6 +29,8 @@ import PreviewSettings from "./PreviewSettings";
 import useScreenOrientation from "../../utils/useScreenOrientation";
 import { AnimationState, setupFrameCallback } from "./frameCallback.ts";
 
+import { useTranslation } from "react-i18next";
+
 const DevUtil = import.meta.env.DEV
   ? lazy(() => import("./DevUtil.tsx"))
   : () => null;
@@ -38,6 +40,10 @@ type Props = {
 };
 
 export default function ContentPreview(props: Props): React.ReactNode {
+
+  const { t } = useTranslation();
+  const ns = "beastiepedia.contentPreview"
+
   const [colors, setColors] = useState<number[][]>([
     [255, 255, 255],
     [255, 255, 255],
@@ -102,7 +108,7 @@ export default function ContentPreview(props: Props): React.ReactNode {
   const [noDisplayRenderState, setNoDisplayRender] = useState(true);
   const noDisplayRender =
     beastieIdRef.current != props.beastiedata.id || noDisplayRenderState;
-  const [noDisplayReason, setNoDisplayReason] = useState("Loading...");
+  const [noDisplayReason, setNoDisplayReason] = useState(t(`${ns}.loading`));
 
   const setFrame = useCallback(
     (frame: number) => {
@@ -115,7 +121,7 @@ export default function ContentPreview(props: Props): React.ReactNode {
         }
       } else if (!loadedImages[frame % drawnsprite.frames]) {
         setNoDisplayRender(true);
-        setNoDisplayReason("Loading...");
+        setNoDisplayReason(t(`${ns}.loading`));
       }
     },
     [loadedImages, drawnsprite.frames],
@@ -244,7 +250,7 @@ export default function ContentPreview(props: Props): React.ReactNode {
   useEffect(() => {
     beastieIdRef.current = props.beastiedata.id;
     setNoDisplayRender(true);
-    setNoDisplayReason("Loading...");
+    setNoDisplayReason(t(`${ns}.loading`));
   }, [props.beastiedata.id]);
 
   useEffect(() => {
@@ -263,7 +269,7 @@ export default function ContentPreview(props: Props): React.ReactNode {
         if (error instanceof WebGLError) {
           console.log(`WebGL Error: ${error.message}`);
           setNoDisplayRender(true);
-          setNoDisplayReason("Beastie Preview Failed");
+          setNoDisplayReason(t(`${ns}.glError`));
           return;
         } else {
           throw error;
@@ -433,7 +439,7 @@ export default function ContentPreview(props: Props): React.ReactNode {
           height={1000}
           ref={canvasRef}
         >
-          Beastie Preview Image
+          {t(`${ns}.canvasPlaceholder`)}
         </canvas>
         <div
           className={styles.canvasfailed}
@@ -458,8 +464,8 @@ export default function ContentPreview(props: Props): React.ReactNode {
         onClick={() => setPreviewOptionsVisible((visible) => !visible)}
         style={{ display: portrait ? "block" : "none" }}
       >
-        <span className={previewOptionsVisible ? "" : styles.upArrow}>V</span>{" "}
-        Preview Options
+        {previewOptionsVisible?"[-] ":"[+] "}
+        {t(`${ns}.previewOptions`)}
       </button>
 
       <div
