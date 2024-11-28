@@ -11,6 +11,7 @@ import ComboMove from "./ComboMove";
 import { useState } from "react";
 import Sfx from "./Sfx";
 import Evolution from "./Evolution";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   beastiedata: BeastieType;
@@ -23,13 +24,16 @@ const NUMBER_FORMAT = Intl.NumberFormat(undefined, {
 });
 
 function ExpForLevel({ growth }: { growth: number }) {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.contentInfo";
+
   const [userLevel, setUserLevel] = useState(100);
   const level = Math.min(Math.max(userLevel, 0), 100);
   return (
     <InfoBox
       header={
         <>
-          Exp for Level{" "}
+          {t(ns + ".expForLevelPre")}
           <input
             type="number"
             className={styles.levelInput}
@@ -46,6 +50,7 @@ function ExpForLevel({ growth }: { growth: number }) {
           <button onClick={() => setUserLevel(Math.min(100, level + 1))}>
             +
           </button>
+          {t(ns + ".expForLevelPost")}
         </>
       }
     >
@@ -62,6 +67,9 @@ const TRAINING_TYPE: Record<string, React.ReactElement> = {
 };
 
 export default function ContentInfo(props: Props): React.ReactNode {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.contentInfo";
+
   const beastiedata = props.beastiedata;
 
   const training = beastiedata.tyield
@@ -72,7 +80,7 @@ export default function ContentInfo(props: Props): React.ReactNode {
           {index != 0 ? <br /> : null}
           <span>+{array[index + 1]} </span>
           {TRAINING_TYPE[(type as string)[0]]}
-          <span>{(type as string)[1] == "a" ? "POW" : "DEF"}</span>
+          <span>{(type as string)[1] == "a" ? t(ns + ".pow") : t(ns + ".def")}</span>
         </span>
       );
     })
@@ -81,15 +89,15 @@ export default function ContentInfo(props: Props): React.ReactNode {
   return (
     <div className={styles.info}>
       <div className={styles.wrapinfoboxes}>
-        <InfoBox header="Number">#{beastiedata.number}</InfoBox>
-        <InfoBox header="Name">{beastiedata.name}</InfoBox>
-        <InfoBox header="Development">{beastiedata.anim_progress}%</InfoBox>
+        <InfoBox header={t(ns + ".number")}>#{beastiedata.number}</InfoBox>
+        <InfoBox header={t(ns + ".name")}>{beastiedata.name}</InfoBox>
+        <InfoBox header={t(ns + ".development")}>{beastiedata.anim_progress}%</InfoBox>
         <Evolution beastiedata={beastiedata} />
       </div>
 
-      <InfoBox header="Description">{beastiedata.desc}</InfoBox>
+      <InfoBox header={t(ns + ".description")}>{beastiedata.desc}</InfoBox>
 
-      <InfoBox header="Traits">
+      <InfoBox header={t(ns + ".traits")}>
         <table className={styles.traittable}>
           <tbody>
             {beastiedata.ability.map((value, index) =>
@@ -98,7 +106,7 @@ export default function ContentInfo(props: Props): React.ReactNode {
                   <td>
                     {abilities[value].name}
                     {beastiedata.ability_hidden && index > 0
-                      ? " (recessive)"
+                      ? t(ns + ".recessiveTrait")
                       : ""}
                   </td>
                   <td>
@@ -108,18 +116,18 @@ export default function ContentInfo(props: Props): React.ReactNode {
                   </td>
                 </tr>
               ) : (
-                `Unknown trait ${value}`
+                t(ns + ".unknownTrait") + value
               ),
             )}
           </tbody>
         </table>
       </InfoBox>
 
-      <BoxHeader>Stat Distribution</BoxHeader>
+      <BoxHeader>{t(ns + ".statDist")}</BoxHeader>
       <StatDistribution beastiedata={beastiedata} />
 
       <div className={styles.wrapinfoboxes}>
-        <InfoBox header="Recruit Condition">
+        <InfoBox header={t(ns + ".recruitCondition")}>
           {beastiedata.recruit_value != 0.5 ? (
             <>
               <TextTag>{beastiedata.recruit.description}</TextTag>
@@ -134,10 +142,10 @@ export default function ContentInfo(props: Props): React.ReactNode {
               </span>
             </>
           ) : (
-            "Cannot be recruited from the wild."
+            t(ns + ".recruitNoWild")
           )}
         </InfoBox>
-        <InfoBox header="Ally Training">{training}</InfoBox>
+        <InfoBox header={t(ns + ".allyTraining")}>{training}</InfoBox>
         <ExpForLevel growth={beastiedata.growth} />
       </div>
 
@@ -147,16 +155,16 @@ export default function ContentInfo(props: Props): React.ReactNode {
       />
       <ComboMove beastiedata={beastiedata} />
 
-      <InfoBox header="Research">
+      <InfoBox header={t(ns + ".research")}>
         <div className={styles.research}>
           <ResearchCarousel beastieid={beastiedata.id} />
         </div>
-        Researcher{Array.isArray(beastiedata.designer) ? "s" : ""}:{" "}
+        {t(ns + ".researcher")}
         {Array.isArray(beastiedata.designer)
           ? beastiedata.designer.map((i) => designers[i]).join(", ")
           : designers[beastiedata.designer]}
         <br />
-        Videographer{Array.isArray(beastiedata.animator) ? "s" : ""}:{" "}
+        {t(ns + ".videographer")}
         {Array.isArray(beastiedata.animator)
           ? beastiedata.animator.map((i) => designers[i]).join(", ")
           : designers[beastiedata.animator]}

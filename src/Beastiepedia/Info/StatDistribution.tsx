@@ -1,6 +1,7 @@
 import styles from "./StatDistribution.module.css";
 import TypeColor from "../../data/TypeColor";
 import type { BeastieType } from "../../data/BeastieData";
+import { useTranslation } from "react-i18next";
 
 type BarProps = {
   value: number;
@@ -38,11 +39,13 @@ type Props = {
 };
 
 export default function StatDistribution(props: Props): React.ReactElement {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.statDistribution";
   const beastiedata = props.beastiedata;
   return (
     <div className={styles.container}>
       <div className={styles.statcontainer}>
-        <div className={styles.barcontainer}>POW</div>
+        <div className={styles.barcontainer}>{t(ns + ".pow")}</div>
         <StatBar value={beastiedata.ba} right={false} color={TypeColor.Body} />
         <StatBar
           value={beastiedata.ha}
@@ -65,7 +68,7 @@ export default function StatDistribution(props: Props): React.ReactElement {
       </div>
       <div className={styles.statcontainer}>
         <div className={`${styles.barcontainer} ${styles.barcontainerright}`}>
-          DEF
+          {t(ns + ".def")}
         </div>
         <StatBar
           value={beastiedata.bd}

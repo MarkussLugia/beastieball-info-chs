@@ -18,11 +18,11 @@ i18n
           playdex: { title: "招式图鉴" },
           beastiepedia: {
             title: "Beastie 图鉴",
-            contentPreview:{
+            contentPreview: {
               loading: "加载中",
               glError: "WebGL 错误",
               canvasPlaceholder: "Beastie 预览",
-              previewOptions: "预览选项"
+              previewOptions: "预览选项",
             },
             noSelected: {
               prompt: "未选中 Beastie",
@@ -70,11 +70,48 @@ i18n
               savePNG: "保存 PNG",
               copyPNG: "复制 PNG",
               saveGIF: "保存 GIF",
-              speedNotify: "设置的播放速度较高时，保存的 GIF 可能无法达到此速度。",
+              speedNotify:
+                "设置的播放速度较高时，保存的 GIF 可能无法达到此速度。",
               displaySize: "图框大小：",
               background: "背景：",
               crop: "缩放至合适大小：",
             },
+            contentInfo: {
+              number: "编号",
+              name: "名称",
+              development: "设计进度",
+              description: "图鉴介绍",
+              traits: "特性",
+              recessiveTrait: "（隐藏）",
+              unknownTrait: "未收录的特性：",
+              recruitCondition: "收服条件",
+              recruitNoWild: "无法在野外收服。",
+              allyTraining: "同伴特训",
+              pow: "攻击",
+              def: "防御",
+              statDist: "能力值",
+              expForLevelPre: "等级",
+              expForLevelPost: "所需经验",
+              research: "开发笔记",
+              researcher: "设计师：",
+              videographer: "动画师：",
+            },
+            evolution: {
+              atLevel: "达到等级 {{level}} 时",
+              atPlace: "在 {{place}} ",
+              atRelationship: "达成 {{relationship}} 好感时",
+              metamorph: "进化",
+              from: "自",
+              to: "至",
+              or: "或",
+              noEvoFrom: "此 Beastie 是基础形态。",
+              noEvoTo: "此 Beastie 无进化形态。",
+              spoilerAlert: "此处可能包含剧透，点击显示隐藏的内容。",
+            },
+            statDistribution: {
+              pow: "攻",
+              def: "防",
+            }
           },
           map: { title: "地图" },
           teams: { title: "推荐的配队" },

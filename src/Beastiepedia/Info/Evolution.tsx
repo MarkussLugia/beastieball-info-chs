@@ -9,6 +9,8 @@ import {
 import { useState } from "react";
 import TextTag from "../../shared/TextTag";
 
+import { useTranslation } from "react-i18next";
+
 type EvolutionType = {
   condition: number[];
   specie: string;
@@ -87,13 +89,17 @@ function EvoCondition({
   value: number | Condition;
   specie: string;
 }): React.ReactNode {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.evolution";
   switch (condition) {
     case 0:
-      return `at level ${value}`;
+      return t(ns + ".atLevel", { level: value });
     case 2:
-      return `at ${LOCATION_CONDS[specie] ?? "somewhere"}`;
+      return t(ns + ".atPlace", {
+        place: LOCATION_CONDS[specie] ?? "somewhere",
+      });
     case 3:
-      return `after forming ${value} relationships`;
+      return t(ns + ".atRelationship", { relationship: value });
     case 5:
     case 6: {
       const snow = condition == 6;
@@ -127,10 +133,12 @@ function EvoText({
   direction: string;
   isSpoiler: boolean;
 }) {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.evolution";
   const conds: React.ReactNode[] = [];
   for (let i = 0; i < evo.evolution.condition.length; i++) {
     if (i > 0) {
-      conds.push(" or ");
+      conds.push(t(ns + ".or"));
     }
     conds.push(
       <EvoCondition
@@ -144,11 +152,11 @@ function EvoText({
 
   return (
     <div>
-      Metamorphs {direction}{" "}
+      {conds}
+      {t(ns+".metamorph")}{direction}{" "}
       <Link to={`/beastiepedia/${evo.beastie.name}`}>
         {isSpoiler ? "???" : evo.beastie.name}
       </Link>{" "}
-      {conds}
     </div>
   );
 }
@@ -194,6 +202,8 @@ export default function Evolution({
 }: {
   beastiedata: BeastieType;
 }) {
+  const { t } = useTranslation();
+  const ns = "beastiepedia.evolution";
   const [spoilerMode] = useSpoilerMode();
   const [beastieSeen] = useSpoilerSeen();
 
@@ -214,13 +224,13 @@ export default function Evolution({
   const [showEvolution, setShowEvolution] = useState("");
 
   return (
-    <InfoBox header="Metamorphosis">
+    <InfoBox header={t(ns+".metamorph")}>
       {preEvos?.length ? (
         preEvos.map((evo, index) => (
           <EvoText
             key={`${evo.beastie.id}${index}`}
             evo={evo}
-            direction="from"
+            direction={t(ns + ".from")}
             isSpoiler={
               evo
                 ? spoilerMode == SpoilerMode.OnlySeen &&
@@ -230,7 +240,7 @@ export default function Evolution({
           />
         ))
       ) : (
-        <div>Does not Metamorph from any Beastie</div>
+        <div>{t(ns+".noEvoFrom")}</div>
       )}
 
       {showEvolution == beastiedata.id || spoilerMode == SpoilerMode.All ? (
@@ -239,7 +249,7 @@ export default function Evolution({
             <EvoText
               key={evo.beastie.id + index}
               evo={evo}
-              direction="to"
+              direction={t(ns + ".to")}
               isSpoiler={
                 spoilerMode == SpoilerMode.OnlySeen &&
                 !beastieSeen[evo.beastie.id]
@@ -247,11 +257,11 @@ export default function Evolution({
             />
           ))
         ) : (
-          <div>Does not Metamorph into any Beastie</div>
+          <div>{t(ns+".noEvoTo")}</div>
         )
       ) : (
         <div onClick={() => setShowEvolution(beastiedata.id)}>
-          Possible spoiler. Click to reveal.
+          {t(ns+".spoilerAlert")}
         </div>
       )}
     </InfoBox>
