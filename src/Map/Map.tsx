@@ -9,7 +9,7 @@ import {
   Popup,
   useMapEvents,
 } from "react-leaflet";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import WORLD_DATA, { EXTRA_MARKERS } from "../data/WorldData";
@@ -26,6 +26,9 @@ import {
   useSpoilerMode,
   useSpoilerSeen,
 } from "../shared/useSpoiler";
+import OTHER_AREAS from "./OtherLayerAreas";
+import Control from "react-leaflet-custom-control";
+import BeastieSelect from "../shared/BeastieSelect";
 
 function MapEvents() {
   useMapEvents({
@@ -44,37 +47,105 @@ export default function Map(): React.ReactNode {
   const map_bg_bounds = new L.LatLngBounds([83000, -160000], [-42333, 14762]);
   const level_overlays: React.ReactElement[] = [];
 
+  // BG images
+  level_overlays.push(
+    <ImageOverlay
+      className={styles.mapBg}
+      key="background"
+      url={"/gameassets/maps/sprMap_BG_0.png"}
+      bounds={map_bg_bounds}
+    />,
+    <ImageOverlay
+      className={styles.mapBg}
+      key="backgroundXtra"
+      url={"/gameassets/maps/sprMap_BG_xtra_0.png"}
+      bounds={map_bg_bounds}
+    />,
+  );
+
   const beastieSpawnsOverlays: React.ReactElement[] = [];
 
   const [spoilerMode] = useSpoilerMode();
   const [seenBeasties, setSeenBeasties] = useSpoilerSeen();
 
+  const [postgame, setPostgame] = useState(false);
+
+  const [huntedBeastie, setHuntedBeastie] = useState<string | undefined>(
+    undefined,
+  );
+  const [beastiesLevel, setBeastiesLevel] = useState("");
+
   WORLD_DATA.level_stumps_array.forEach((level) => {
-    const level_bounds = new L.LatLngBounds(
-      [-level.world_y1, level.world_x1],
-      [-level.world_y2, level.world_x2],
-    );
+    const level_size = {
+      x: level.world_x2 - level.world_x1,
+      y: level.world_y2 - level.world_y1,
+    };
+    let x = level.world_x1;
+    let y = level.world_y1;
+
     const layer = level.world_layer ? level.world_layer : 0;
+    let area_found = false;
     if (layer != 0) {
-      return;
+      for (const area of OTHER_AREAS) {
+        if (!level.name.startsWith(area.prefix)) {
+          continue;
+        }
+        x = x + area.offset[0];
+        y = y + area.offset[1];
+        area_found = true;
+        break;
+      }
+      if (!area_found) {
+        return;
+      }
     }
+    const level_bounds = new L.LatLngBounds(
+      [-y, x],
+      [-(y + level_size.y), x + level_size.x],
+    );
     bounds.extend(level_bounds);
-    console.log(level.name, bounds.toBBoxString());
+
+    const show_beasties = beastiesLevel == level.name;
+    const beastie_filter = beastiesLevel == level.name ? "all" : huntedBeastie;
 
     level_overlays.push(
       <ImageOverlay
         className={level.name == "ocean" ? styles.bigLevel : undefined}
         interactive={true}
         bounds={level_bounds}
-        url={`/gameassets/maps/sprMap_${level.name}_0.png`}
+        url={
+          area_found
+            ? `/custom_maps/${level.name}.png`
+            : `/gameassets/maps/sprMap_${level.name}_0.png`
+        }
         key={level.name}
+        eventHandlers={{
+          click: (event) => {
+            for (const elem of document.getElementsByClassName(
+              styles.levelSelected,
+            )) {
+              elem.classList.remove(styles.levelSelected);
+              elem.classList.remove(styles.bigLevelSelected);
+            }
+            setBeastiesLevel(show_beasties ? "" : level.name);
+            if (!show_beasties) {
+              event.target._image.classList.add(styles.levelSelected);
+              if (level.name == "ocean") {
+                event.target._image.classList.add(styles.bigLevelSelected);
+              }
+            }
+          },
+        }}
       />,
     );
 
-    if (!level.has_spawns) {
+    if ((!show_beasties && !beastie_filter) || !level.has_spawns) {
       return;
     }
-    const group = SPAWN_DATA[level.spawn_name[0]]?.group;
+    const group = (
+      (postgame && SPAWN_DATA[level.spawn_name[0] + "_postgame"]) ||
+      SPAWN_DATA[level.spawn_name[0]]
+    )?.group;
     if (!group) {
       return;
     }
@@ -88,6 +159,9 @@ export default function Map(): React.ReactNode {
     } = {};
     const non_dupe_beasties: string[] = [];
     group.forEach((value) => {
+      if (beastie_filter != "all" && beastie_filter != value.specie) {
+        return;
+      }
       if (overall_percent[value.specie]) {
         overall_percent[value.specie].percent += value.percent;
         overall_percent[value.specie].levelMin = Math.min(
@@ -108,10 +182,6 @@ export default function Map(): React.ReactNode {
         };
       }
     });
-    const level_size = {
-      x: level.world_x2 - level.world_x1,
-      y: level.world_y2 - level.world_y1,
-    };
     non_dupe_beasties.forEach((value, index) => {
       const beastie = BEASTIE_DATA.get(value);
       if (!beastie) {
@@ -120,6 +190,7 @@ export default function Map(): React.ReactNode {
       const isSpoiler =
         spoilerMode == SpoilerMode.OnlySeen && !seenBeasties[beastie.id];
       const alt = `${isSpoiler ? `Beastie #${beastie.number}` : beastie.name} spawn location.`;
+      const iconScale = beastie.id != huntedBeastie ? 1 : 1.5;
       beastieSpawnsOverlays.push(
         <Marker
           key={`${level.name}-${beastie.id}`}
@@ -132,24 +203,23 @@ export default function Map(): React.ReactNode {
               ? // square enough, diag
                 [
                   -(
-                    level.world_y1 +
+                    y +
                     (index + 0.5) * (level_size.y / non_dupe_beasties.length)
                   ),
-                  level.world_x1 +
-                    (index + 0.5) * (level_size.x / non_dupe_beasties.length),
+                  x + (index + 0.5) * (level_size.x / non_dupe_beasties.length),
                 ]
               : level_size.x > level_size.y
                 ? [
-                    -(level.world_y1 + level_size.y / 2),
-                    level.world_x1 +
+                    -(y + level_size.y / 2),
+                    x +
                       (index + 0.5) * (level_size.x / non_dupe_beasties.length),
                   ]
                 : [
                     -(
-                      level.world_y1 +
+                      y +
                       (index + 0.5) * (level_size.y / non_dupe_beasties.length)
                     ),
-                    level.world_x1 + level_size.x / 2,
+                    x + level_size.x / 2,
                   ]
           }
           icon={L.icon({
@@ -157,7 +227,7 @@ export default function Map(): React.ReactNode {
               ? "/gameassets/sprExclam_1.png"
               : `/icons/${beastie.name}.png`,
             className: isSpoiler ? styles.spoilerBeastie : undefined,
-            iconSize: [50, 50],
+            iconSize: [50 * iconScale, 50 * iconScale],
           })}
           eventHandlers={{
             click: () => {
@@ -188,21 +258,16 @@ export default function Map(): React.ReactNode {
     });
   });
 
-  // BG images
-  level_overlays.unshift(
-    <ImageOverlay
-      className={styles.mapBg}
-      key="background"
-      url={"/gameassets/maps/sprMap_BG_0.png"}
-      bounds={map_bg_bounds}
-    />,
-    <ImageOverlay
-      className={styles.mapBg}
-      key="backgroundXtra"
-      url={"/gameassets/maps/sprMap_BG_xtra_0.png"}
-      bounds={map_bg_bounds}
-    />,
-  );
+  const inside_overlays: React.ReactElement[] = [];
+  for (const area of OTHER_AREAS) {
+    inside_overlays.push(
+      <ImageOverlay
+        key={area.prefix}
+        bounds={L.latLngBounds(area.overlay)}
+        url={`/custom_maps/${area.prefix}_overlay.png`}
+      />,
+    );
+  }
 
   const {
     bigtitleheaders,
@@ -290,7 +355,35 @@ export default function Map(): React.ReactNode {
               ))}
             </LayerGroup>
           </LayersControl.Overlay>
+          <LayersControl.Overlay checked name="Inside Overlays">
+            <LayerGroup>{inside_overlays}</LayerGroup>
+          </LayersControl.Overlay>
         </LayersControl>
+        <Control position="topright">
+          <div className={styles.controlBox}>
+            <div className={styles.controlHidden}>
+              <img src="/icons/Sprecko.png" alt="Beastie Options" />
+            </div>
+            <div className={styles.controlContent}>
+              <h3>Beastie Options</h3>
+              <BeastieSelect
+                beastieId={huntedBeastie}
+                setBeastieId={setHuntedBeastie}
+                extraOptionText="Show All"
+                extraOption="all"
+              />
+              <div>
+                <input
+                  type="checkbox"
+                  checked={postgame}
+                  onChange={(event) => setPostgame(event.currentTarget.checked)}
+                  id="postgame"
+                />
+                <label htmlFor="postgame"> Postgame Spawns</label>
+              </div>
+            </div>
+          </div>
+        </Control>
         <LayerGroup>{level_overlays}</LayerGroup>
       </MapContainer>
     </>
