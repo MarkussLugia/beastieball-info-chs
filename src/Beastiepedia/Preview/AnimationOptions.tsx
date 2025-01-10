@@ -23,6 +23,7 @@ type Props = {
 export default function AnimationOptions(props: Props): React.ReactElement {
   const { t } = useTranslation();
   const ns = "beastiepedia.animationOptions";
+  const alt_nums = props.beastiedata.spr_alt.length > 1;
   return (
     <>
       <InfoBox header={t(`${ns}.title`)}>
@@ -40,7 +41,8 @@ export default function AnimationOptions(props: Props): React.ReactElement {
               <option value="-1">{t(`${ns}.altSpriteNormal`)}</option>
               {props.beastiedata.spr_alt.map((sprindex, index) => (
                 <option key={sprindex} value={index}>
-                  {t(`${ns}.altSpriteAlt`)} {index + 1}
+                  {t(`${ns}.altSpriteAlt`)}
+                  {alt_nums ? ` ${index + 1}` : ""}
                 </option>
               ))}
             </select>
@@ -87,7 +89,7 @@ export default function AnimationOptions(props: Props): React.ReactElement {
             props.setFrame(Number(event.currentTarget.value));
           }}
         />
-        <div className={styles.middlealign}>
+        <div>
           <label htmlFor="speed">{t(`${ns}.speed`)}</label>
           <input
             type="number"

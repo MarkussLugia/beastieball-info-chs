@@ -26,31 +26,24 @@ export default function ComboMove({
   const [friendId, setFriendId] = useState<string | undefined>(undefined);
   const friend = friendId ? BEASTIE_DATA.get(friendId) : undefined;
 
-  const pows: number[] = [];
+  const powMults: number[] = [1, 1];
   let target = 0;
   let use = 0;
-  let moveType =
-    type == ComboType.Partners ? 3 : type == ComboType.Defense ? 5 : 4;
+  const moveType =
+    type == ComboType.Partners
+      ? 3
+      : type == ComboType.Defense
+        ? 5
+        : type == ComboType.Support
+          ? 4
+          : // Rivals
+            beastiedata.type_focus;
 
   const effects: MoveEffect[] = [];
 
-  const attks = [beastiedata.ba, beastiedata.ha, beastiedata.ma];
-  if (type == ComboType.Rivals) {
-    if (friend) {
-      attks[0] += friend.ba;
-      attks[1] += friend.ha;
-      attks[2] += friend.ma;
-    }
-    moveType =
-      attks[2] > attks[1] && attks[2] > attks[0]
-        ? 2
-        : attks[1] > attks[0]
-          ? 1
-          : 0;
-  }
   (friend ? [beastiedata, friend] : [beastiedata])
     .sort((beastie, beastie2) => beastie.number - beastie2.number)
-    .forEach((beastie) => {
+    .forEach((beastie, beastieIndex) => {
       for (let i = 0; i < beastie.combos[type].length; i += 3) {
         const neweff = {
           eff: beastie.combos[type][i],
@@ -62,7 +55,7 @@ export default function ComboMove({
             target = neweff.pow;
             continue;
           case 50:
-            pows.push(neweff.pow);
+            powMults[beastieIndex] = neweff.pow;
             continue;
           case 51:
             use = neweff.pow;
@@ -105,15 +98,15 @@ export default function ComboMove({
           desc_tags: [],
           name: `${beastiedata.name} + ${friend ? friend.name : "???"} ${ComboType[type]}`,
           type: moveType,
-          pow:
-            pows.length == 0
-              ? 100
-              : pows.length == 1
-                ? Math.round((pows[0] * 100) / 5) * 5
-                : Math.round(((pows[0] + pows[1]) * 50) / 5) * 5,
+          pow: Math.ceil(((powMults[0] + powMults[1]) * 50) / 5) * 5,
           eff: effects,
         }}
         noLearner={true}
+        typeText={
+          type == ComboType.Rivals
+            ? "Rivals Move type is the type with the highest POW on the user Beastie."
+            : undefined
+        }
       />
     </InfoBox>
   );

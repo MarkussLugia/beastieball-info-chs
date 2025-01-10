@@ -29,7 +29,7 @@ export default function Home(): React.ReactNode {
         text={t("teams.title")}
         image={"/gameassets/sprMainmenu/20.png"}
         hoverImage={"/gameassets/sprMainmenu/21.png"}
-        location={"/teams/"}
+        location={"/team/"}
       />
       {/* <NavigationMenuOption
         text={"Modding"}

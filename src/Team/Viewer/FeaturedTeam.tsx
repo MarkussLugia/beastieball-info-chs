@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
-import { FeaturedTeamType } from "./FeaturedTeams";
+import { FeaturedTeamType } from "./FeaturedCategories";
 import styles from "./Teams.module.css";
-import BEASTIE_DATA from "../data/BeastieData";
+import BEASTIE_DATA from "../../data/BeastieData";
 import {
   SpoilerMode,
   useSpoilerMode,
   useSpoilerSeen,
-} from "../shared/useSpoiler";
+} from "../../shared/useSpoiler";
 
-const DESCRIPTION_MAX = 90;
+const LONG_NAME_LENGTH = 45;
+const DESCRIPTION_MAX = 115;
 
 export default function FeaturedTeam({
   team,
@@ -40,11 +41,17 @@ export default function FeaturedTeam({
 
   return (
     <Link
-      to={`/teams/${team.team.code}`}
+      to={`/team/viewer/${team.team.code}`}
       onClick={handleClick}
       className={selected ? styles.featuredTeamSelected : styles.featuredTeam}
     >
-      <div>{team.name}</div>
+      <div
+        style={{
+          fontSize: `${Math.min(1, LONG_NAME_LENGTH / team.name.length)}em`,
+        }}
+      >
+        {team.name}
+      </div>
       <div className={styles.featuredDesc}>
         <div>
           {team.description.slice(0, DESCRIPTION_MAX).trimEnd()}
@@ -93,7 +100,8 @@ export default function FeaturedTeam({
         })}
       </div>
       <div>
-        By {team.author} - #{team.team.code}
+        By {team.author}
+        {team.builder ? "" : ` - #${team.team.code}`}
       </div>
     </Link>
   );

@@ -3,6 +3,7 @@ import json
 import struct
 import sys
 import zlib
+import subprocess
 from pathlib import Path
 
 from PIL import Image
@@ -28,36 +29,15 @@ def do_file(fp, outdir=None):
     datalen = len(data)
     data = io.BytesIO(data)
     data.seek(0)
-    width = read_short(data)
-    height = read_short(data)    
-    im = Image.new("RGBA", (width, height))
-    i = 0
     image_count = 0
-    imdata = []
     while data.tell() != datalen:
-        if i >= width*height:
-            im.putdata(imdata)
-            im.save(outdir / f"{fp.stem}_{image_count}.png", optimize=True)
-            if width > height:
-                small_size = [PREVIEW_SIZE[0], int(height * PREVIEW_SIZE[0] / width)]
-            else:
-                small_size = [int(width * PREVIEW_SIZE[1] / height), PREVIEW_SIZE[1]]
-            im.resize(small_size).save(outdir / f"{fp.stem}_{image_count}_small.webp", lossless=False, quality=75)
-            i = 0
-            imdata = []
-            image_count += 1
-            width = read_short(data)
-            height = read_short(data)    
-            im = Image.new("RGBA", (width, height))
-        imdata.append(read_byte(data, 4))
-        i += 1
-    im.putdata(imdata)
-    im.save(outdir / f"{fp.stem}_{image_count}.png", optimize=True)
-    if width > height:
-        small_size = [PREVIEW_SIZE[0], int(height * PREVIEW_SIZE[0] / width)]
-    else:
-        small_size = [int(width * PREVIEW_SIZE[1] / height), PREVIEW_SIZE[1]]
-    im.resize(small_size).save(outdir / f"{fp.stem}_{image_count}_small.webp", lossless=False, quality=75)
+        width = read_short(data)
+        height = read_short(data)    
+        im = Image.frombytes("RGBA", (width, height), data.read(width * height * 4))
+        im.save(outdir / f"{fp.stem}_{image_count}.png", optimize=True)
+        small_size = [PREVIEW_SIZE[0], int(height * PREVIEW_SIZE[0] / width)] if width > height else [int(width * PREVIEW_SIZE[1] / height), PREVIEW_SIZE[1]]
+        im.resize(small_size).save(outdir / f"{fp.stem}_{image_count}_small.webp", lossless=False, quality=75)
+        image_count += 1
     return image_count
 
 def main(args):
@@ -66,6 +46,7 @@ def main(args):
         with RESEARCH_DATA.open() as f:
             researchdata = json.load(f)
     outdir = Path("../public/gameassets/research/")
+    new_images = []
     for i in args:
         fp = Path(i)
         if fp.is_dir():
@@ -73,10 +54,14 @@ def main(args):
             # outdir.mkdir(exist_ok=True)
             for fp2 in fp.glob("**/*.brs"):
                 researchdata[fp2.stem] = do_file(fp2, outdir=outdir) + 1
+            new_images += [outdir / f"{fp2.stem}_{i}.png" for i in range(researchdata[fp2.stem])]
         else:
             researchdata[fp.stem] = do_file(fp, outdir=outdir) + 1
+            new_images += [outdir / f"{fp.stem}_{i}.png" for i in range(researchdata[fp.stem])]
     with RESEARCH_DATA.open("w+") as f:
         json.dump(researchdata, f)
+    if new_images:
+        subprocess.run(["oxipng", "-o", "max", *new_images])
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -22,7 +22,7 @@ export default function PreviewSettings(props: Props): React.ReactElement {
   return (
     <>
       <InfoBox header={t(`${ns}.title`)} className={styles.previewSettings}>
-        <div className={styles.middlealign}>
+        <div>
           <button onClick={() => props.downloadImage()}>
             {t(`${ns}.savePNG`)}
           </button>
@@ -59,7 +59,7 @@ export default function PreviewSettings(props: Props): React.ReactElement {
             }}
           />
         </label>
-        <div className={styles.middlealign}>
+        <div>
           <label htmlFor="whitebg" style={{ userSelect: "none" }}>
             {t(`${ns}.background`)}
             <input

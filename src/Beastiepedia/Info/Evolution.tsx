@@ -94,12 +94,40 @@ function EvoCondition({
   switch (condition) {
     case 0:
       return t(ns + ".atLevel", { level: value });
-    case 2:
-      return t(ns + ".atPlace", {
-        place: LOCATION_CONDS[specie] ?? "somewhere",
-      });
+    case 2: {
+      const beastie = BEASTIE_DATA.get(specie);
+      return (
+        <>{t(ns + ".atPlace", {
+            place: LOCATION_CONDS[specie] ?? "somewhere",
+          })}
+          <Link
+            to={`/map/?marker=${beastie?.name}`}
+            title="View Metamorphosis Location on the Map"
+          >
+            <img
+              src="/gameassets/sprMainmenu/2.png"
+              style={{
+                height: "1.2em",
+                verticalAlign: "middle",
+                filter: "brightness(0.3)",
+              }}
+            />
+          </Link>
+        </>
+      );
+    }
     case 3:
       return t(ns + ".atRelationship", { relationship: value });
+    case 4:
+      return (
+        <>
+          at level {value} after fulfilling the Yearning.
+          <EvoCondInfo>
+            - The yearning will appear after enough trust is reached.
+            <br />- Trust is raised when the Beastie is on-field during a game.
+          </EvoCondInfo>
+        </>
+      );
     case 5:
     case 6: {
       const snow = condition == 6;

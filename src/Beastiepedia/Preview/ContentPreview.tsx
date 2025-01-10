@@ -69,6 +69,8 @@ export default function ContentPreview(props: Props): React.ReactNode {
   const programRef = useRef<WebGLProgram | null>(null);
   const cropCanvasRef = useRef<HTMLCanvasElement>(null);
 
+  const [rowdy, setRowdy] = useState(false);
+
   const [animation, setAnimation] = useState("idle");
   const animdata: BeastieAnimData | undefined = BEASTIE_ANIMATIONS.get(
     `_${props.beastiedata.spr}`,
@@ -260,9 +262,17 @@ export default function ContentPreview(props: Props): React.ReactNode {
         !programRef.current)
     ) {
       try {
-        const newGl = setupWebGL(canvasRef.current);
+        const newGl = setupWebGL(canvasRef.current, rowdy);
         glRef.current = newGl.gl;
         programRef.current = newGl.program;
+        // if rowdy was changed, recreating the program will cause the image + uniforms to be reset.
+        setFrame(animStateRef.current.frame ?? 0);
+        setColorUniforms(
+          glRef.current,
+          programRef.current,
+          colors,
+          props.beastiedata.colors.length,
+        );
       } catch (error) {
         if (error instanceof WebGLError) {
           console.log(`WebGL Error: ${error.message}`);
@@ -274,7 +284,7 @@ export default function ContentPreview(props: Props): React.ReactNode {
         }
       }
     }
-  }, []);
+  }, [colors, props.beastiedata.colors.length, rowdy, setFrame]);
 
   useEffect(() => {
     if (glRef.current && programRef.current) {
@@ -308,7 +318,7 @@ export default function ContentPreview(props: Props): React.ReactNode {
       }
       let canvas = canvasRef.current;
       const frame = animStateRef.current.frame;
-      if (fitBeastie && frame) {
+      if (fitBeastie && frame != undefined) {
         cropCanvasRef.current.width = drawnsprite.bboxes[frame].width;
         cropCanvasRef.current.height = drawnsprite.bboxes[frame].height;
         cropCanvasRef.current
@@ -490,7 +500,15 @@ export default function ContentPreview(props: Props): React.ReactNode {
           setAlt={setAlt}
         />
 
-        <ColorTabs beastiedata={props.beastiedata} colorChange={colorChange} />
+        <ColorTabs
+          beastiedata={props.beastiedata}
+          colorChange={colorChange}
+          rowdy={rowdy}
+          setRowdy={(value) => {
+            setRowdy(value);
+            glRef.current = null;
+          }}
+        />
 
         <PreviewSettings
           downloadImage={downloadImage}

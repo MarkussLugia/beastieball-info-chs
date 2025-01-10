@@ -9,7 +9,7 @@ import { SpoilerMode, useFriendSpoiler, useSpoilerMode } from "./useSpoiler";
 
 // reuqired: targ=12 says Targets SIDEWAYS.
 
-const TARGET_STRINGS: { [key: number]: string } = {
+const TARGET_STRINGS: Record<number, string> = {
   0: "self",
   1: "ally",
   2: "active team",
@@ -17,9 +17,10 @@ const TARGET_STRINGS: { [key: number]: string } = {
   5: "target's ally",
   6: "entire team",
   7: "every fielded player",
+  8: "other team",
 };
 
-const ALT_TARGET_STRINGS: { [key: number]: string } = {
+const ALT_TARGET_STRINGS: Record<number, string> = {
   0: "self",
   1: "ally",
   2: "active team",
@@ -148,7 +149,7 @@ function getEffectString(
       return `${feels} +${effect.pow} [sprStatus,6]SWEATY (losing stamina)${dot}`;
     case -26:
     case 26:
-      return `${feels} ${effect.pow} [sprStatus,8]JAZZED (POW x1.5)${effect.eff < 0 && attack ? " before contact" : ""}${dot}`;
+      return `${feels} ${effect.pow} [sprStatus,8]JAZZED (POW +50%)${effect.eff < 0 && attack ? " before contact" : ""}${dot}`;
     case 27:
       return `${feels} ${effect.pow} [sprStatus,9]BLOCKED (POW x2/3)${dot}`;
     case 28:
@@ -184,7 +185,7 @@ function getEffectString(
         case 10:
           return "POW +10 for each [sprBoost,0]BOOST on the user.";
         case 11:
-          return "POW +50% for each [sprBoost,1]BOOST on target.";
+          return "POW +100% for each [sprBoost,1]BOOST on target.";
         case 12:
           return "POW x2 when [sprStatus,6]SWEATY, [sprStatus,0]NERVOUS, or [sprStatus,11]TENDER.";
         case 13:
@@ -232,7 +233,7 @@ function getEffectString(
     case 42:
       return `${FIELD_TARGET[effect.targ]} gets +${effect.pow} TRAP (Tag-ins lose 8 stamina per trap).`;
     case 43:
-      return `${FIELD_TARGET[effect.targ]} gets +${effect.pow} RALLY ([sprIcon,1]POW +50%, [sprIcon,2]POW -25%).`;
+      return `${FIELD_TARGET[effect.targ]} gets +${effect.pow} RALLY ([sprIcon,1]POW +50%, [sprIcon,2]POW x3/4).`;
     case 44:
       return `${FIELD_TARGET[effect.targ]} gets ${effect.pow} RHYTHM (Healing and protection).`;
     case 45:
@@ -275,6 +276,7 @@ export default function MoveView(props: {
   move: Move;
   noLearner?: boolean;
   friendFilter?: string;
+  typeText?: string;
 }): React.ReactElement | null {
   const setMoveModal = useContext(MoveModalContext);
 
@@ -284,9 +286,6 @@ export default function MoveView(props: {
 
   const [spoilerMode] = useSpoilerMode();
   const [seenFriends, setSeenFriends] = useFriendSpoiler();
-  if (props.friendFilter && (!friend || friend.name != props.friendFilter)) {
-    return null;
-  }
   const friendSpoiler = friend
     ? spoilerMode == SpoilerMode.OnlySeen && !seenFriends[friend.id]
     : false;
@@ -308,12 +307,16 @@ export default function MoveView(props: {
       learned_text = `Learned from ${friendSpoiler ? friend.name.slice(0, 2) + "..." : friend.name} at ${friend_hearts} hearts.`;
     }
   }
+  if (props.friendFilter && (!friend || friend.name != props.friendFilter)) {
+    return null;
+  }
 
-  const { color, alt } = TypeData[props.move.type]
+  const { color, darkColor, alt } = TypeData[props.move.type]
     ? TypeData[props.move.type]
     : { color: "#ffffff", alt: "a" };
   const style = {
     "--move-color": color,
+    "--move-dark": darkColor,
     "--move-url": `url("/gameassets/sprType/${String(props.move.type)}.png")`,
   } as React.CSSProperties;
 
@@ -365,9 +368,9 @@ export default function MoveView(props: {
         break;
     }
 
-    if (props.move.pow <= -1) {
+    if (props.move.pow < -1) {
       desc.push(`Always does ${-props.move.pow} damage.`);
-    } else if (props.move.pow < 0) {
+    } else if (props.move.pow > -1 && props.move.pow < 0) {
       desc.push(
         `Damage equals ${-props.move.pow * 100}% of target's remaining STAMINA.`,
       );
@@ -408,11 +411,17 @@ export default function MoveView(props: {
   return (
     <div className={styles.movecontainer} style={style}>
       <div className={styles.moveviewbar}>
-        <div className={styles.moveviewimage} title={alt}></div>
+        <div
+          className={styles.moveviewimage}
+          title={props.typeText ? props.typeText : alt}
+        ></div>
         {pow}
       </div>
       <div className={styles.moveseparator}></div>
       <div className={styles.movecontent}>
+        <div className={styles.moveothercolor}>
+          <div className={styles.movehalftone}></div>
+        </div>
         <div
           className={
             props.move.name.length > 18 ? styles.movenamelong : styles.movename
@@ -439,7 +448,7 @@ export default function MoveView(props: {
                   : undefined
               }
             >
-              <span className={styles.movefriendHeart}>{friend_hearts}</span>
+              <span>{friend_hearts}</span>
             </span>
           ) : null}
           {props.noLearner ? null : (

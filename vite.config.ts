@@ -17,6 +17,7 @@ export default defineConfig(() => {
       {
         name: "Sitemap",
         closeBundle() {
+          if (process.env.VITE_EXPERIMENTAL == "true") return;
           const beasties: string[] = Object.keys(BEASTIE_DATA).map(
             (id) => `${url}/beastiepedia/${BEASTIE_DATA[id].name}`,
           );
@@ -25,7 +26,8 @@ ${url}/beastiepedia/
 ${beasties.join("\n")}
 ${url}/playdex/
 ${url}/map/
-${url}/teams/`;
+${url}/team/viewer/
+${url}/team/builder/`;
           fs.writeFile("dist/sitemap.txt", sitemap, () => {});
           fs.writeFile(
             "dist/robots.txt",

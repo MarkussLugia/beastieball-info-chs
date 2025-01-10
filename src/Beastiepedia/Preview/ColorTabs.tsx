@@ -40,6 +40,8 @@ function defaultColor(
 type Props = {
   beastiedata: BeastieType;
   colorChange: (change_index: number, color: number[]) => void;
+  rowdy: boolean;
+  setRowdy: (rowdy: boolean) => void;
 };
 
 type StoredType = {
@@ -247,7 +249,11 @@ export default function ColorTabs(props: Props): React.ReactNode {
             currentTab={currentTab}
             colorMax={colors}
             colors={beastiedata.colors2}
-            fallbackColors={beastiedata.colors}
+            fallbackColors={
+              diffBeastieColors
+                ? (props.beastiedata.colors2 ?? props.beastiedata.colors)
+                : beastiedata.colors
+            }
             beastieid={props.beastiedata.id}
             diffBeastie={diffBeastieColors}
             storedColors={storedColors}
@@ -281,6 +287,8 @@ export default function ColorTabs(props: Props): React.ReactNode {
               value={`${value}`}
               onChange={(event) => {
                 colorChange(index, hexToRgb(event.currentTarget.value));
+                customColors[index] = event.currentTarget.value;
+                setCustomColors(customColors);
                 if (diffBeastieColors != "none") {
                   return;
                 }
@@ -341,15 +349,24 @@ export default function ColorTabs(props: Props): React.ReactNode {
             {t(`${ns}.copyLink`)}
           </button>
         </div>
-        <label>
+        <label className={styles.taboffset}>
+          Rowdy:{" "}
+          <input
+            type="checkbox"
+            onChange={(event) => props.setRowdy(event.currentTarget.checked)}
+            checked={props.rowdy}
+          />
+        </label>
+        <div className={styles.taboffset}>
+          Palette Swap:{" "}
           {t(`${ns}.otherBeastie`)}
           <BeastieSelect
             beastieId={diffBeastieColors}
             setBeastieId={(beastieId: undefined | string) =>
               setDiffBeastieColors(beastieId ? beastieId : "none")
             }
-          />{" "}
-        </label>
+          />
+        </div>
       </div>
     </>
   );
@@ -418,7 +435,7 @@ function BeastieColorTabContent(props: {
           value,
           index < colors.length
             ? colors[index].array
-            : fallbackColors[index].array,
+            : fallbackColors[index % fallbackColors.length].array,
         ),
       );
     });
@@ -460,7 +477,7 @@ function BeastieColorTabContent(props: {
           col,
           index < props.colors.length
             ? props.colors[index].array
-            : props.fallbackColors[index].array,
+            : props.fallbackColors[index % props.fallbackColors.length].array,
         ),
       );
     });
@@ -492,7 +509,7 @@ function BeastieColorTabContent(props: {
         newColor,
         index < props.colors.length
           ? props.colors[index].array
-          : props.fallbackColors[index].array,
+          : props.fallbackColors[index % props.fallbackColors.length].array,
       ),
     );
     colorValues.current[index] = newColor;
@@ -525,7 +542,8 @@ function BeastieColorTabContent(props: {
             colors={
               value < props.colors.length
                 ? props.colors[value].array
-                : props.fallbackColors[value].array
+                : props.fallbackColors[value % props.fallbackColors.length]
+                    .array
             }
             value={colorValues.current[value]}
             handleColorChange={(newColor) => changeColor(value, newColor)}

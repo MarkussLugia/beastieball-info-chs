@@ -18,7 +18,7 @@ import OpenGraph from "../shared/OpenGraph";
 import { createMarkers } from "./createMarkers";
 import Header from "../shared/Header";
 import SPAWN_DATA from "../data/SpawnData";
-import BEASTIE_DATA from "../data/BeastieData";
+import BEASTIE_DATA, { BeastieType } from "../data/BeastieData";
 import ITEM_DIC from "../data/ItemData";
 import TextTag from "../shared/TextTag";
 import {
@@ -29,6 +29,16 @@ import {
 import OTHER_AREAS from "./OtherLayerAreas";
 import Control from "react-leaflet-custom-control";
 import BeastieSelect from "../shared/BeastieSelect";
+import SpecialBeastieMarker from "./SpecialBeastieMarker";
+import { EXTINCT_BEASTIES, METAMORPH_LOCATIONS } from "./SpecialBeasties";
+
+const BEASTIE_ARRAY = [...BEASTIE_DATA.values()];
+
+const SPAWNABLE_BEASTIES = Object.values(SPAWN_DATA)
+  .map((spawns) => spawns.group?.map((spawn) => spawn.specie))
+  .flat()
+  .filter((beastie) => typeof beastie === "string")
+  .filter((beastie, index, array) => index == array.indexOf(beastie));
 
 function MapEvents() {
   useMapEvents({
@@ -36,6 +46,7 @@ function MapEvents() {
       event.popup.getElement()?.classList.remove("leaflet-popup-closing"),
     popupclose: (event) =>
       event.popup.getElement()?.classList.add("leaflet-popup-closing"),
+    // click: (event) => console.log(event.latlng),
   });
 
   return null;
@@ -70,9 +81,31 @@ export default function Map(): React.ReactNode {
 
   const [postgame, setPostgame] = useState(false);
 
-  const [huntedBeastie, setHuntedBeastie] = useState<string | undefined>(
-    undefined,
+  const searchParams = new URL(window.location.href).searchParams;
+  const searchHuntedName = searchParams.get("track");
+  const searchHunted = BEASTIE_ARRAY.find(
+    (beastie) => beastie.name == searchHuntedName,
+  )?.id;
+
+  const [huntedBeastie, setHuntedBeastieState] = useState<string | undefined>(
+    searchHunted && SPAWNABLE_BEASTIES.includes(searchHunted)
+      ? searchHunted
+      : undefined,
   );
+  const setHuntedBeastie = (beastieId: string | undefined) => {
+    setHuntedBeastieState(beastieId);
+    const url = new URL(window.location.href);
+    const beastie = beastieId ? BEASTIE_DATA.get(beastieId)?.name : undefined;
+    if (beastie) {
+      url.searchParams.set("track", beastie);
+    } else {
+      url.searchParams.delete("track");
+    }
+    url.hash = "";
+    history.pushState({}, "", url.toString());
+  };
+  console.log(huntedBeastie);
+
   const [beastiesLevel, setBeastiesLevel] = useState("");
 
   WORLD_DATA.level_stumps_array.forEach((level) => {
@@ -263,6 +296,7 @@ export default function Map(): React.ReactNode {
     inside_overlays.push(
       <ImageOverlay
         key={area.prefix}
+        className={styles.insideOverlay}
         bounds={L.latLngBounds(area.overlay)}
         url={`/custom_maps/${area.prefix}_overlay.png`}
       />,
@@ -279,6 +313,23 @@ export default function Map(): React.ReactNode {
     imgheaders: { [key: string]: React.ReactElement[] };
   } = useMemo(createMarkers, []);
 
+  const extinctIsSpoiler = !(
+    spoilerMode == SpoilerMode.All ||
+    EXTINCT_BEASTIES.some((extinct) => seenBeasties[extinct.beastieId])
+  );
+
+  const marker_name = searchParams.get("marker");
+  const marker = marker_name
+    ? METAMORPH_LOCATIONS.find(
+        (value) => BEASTIE_DATA.get(value.to)?.name == marker_name,
+      ) ||
+      EXTINCT_BEASTIES.find(
+        (value) => BEASTIE_DATA.get(value.beastieId)?.name == marker_name,
+      )
+    : undefined;
+  const center = marker ? marker.position : L.latLng(0, 0);
+  const zoom = marker ? -4 : -5.5;
+
   return (
     <>
       <OpenGraph
@@ -294,8 +345,8 @@ export default function Map(): React.ReactNode {
         maxZoom={0}
         maxBounds={bounds.pad(0.25)}
         maxBoundsViscosity={0.3}
-        zoom={-5.5}
-        center={[0, 0]}
+        zoom={zoom}
+        center={center}
         zoomAnimation={false} // there are seams between the tiles when animating
         zoomSnap={0}
         zoomDelta={0.5}
@@ -331,7 +382,7 @@ export default function Map(): React.ReactNode {
                   icon={L.icon({
                     iconUrl: `/gameassets/sprItems/${ITEM_DIC[gift.items[0][0]].img}.png`,
                     iconSize: [30, 30],
-                    iconAnchor: [20, 20],
+                    iconAnchor: [15, 15],
                   })}
                 >
                   <Popup offset={[0, -5]}>
@@ -358,6 +409,45 @@ export default function Map(): React.ReactNode {
           <LayersControl.Overlay checked name="Inside Overlays">
             <LayerGroup>{inside_overlays}</LayerGroup>
           </LayersControl.Overlay>
+          <LayersControl.Overlay
+            checked
+            name={`${extinctIsSpoiler ? "???" : "Extinct"} Beastie Locations`}
+          >
+            <LayerGroup>
+              {EXTINCT_BEASTIES.map((extinct) => (
+                <SpecialBeastieMarker
+                  key={extinct.beastieId}
+                  open={
+                    extinct.beastieId ==
+                    (marker && "beastieId" in marker
+                      ? marker.beastieId
+                      : undefined)
+                  }
+                  position={extinct.position}
+                  target={BEASTIE_DATA.get(extinct.beastieId) as BeastieType}
+                />
+              ))}
+            </LayerGroup>
+          </LayersControl.Overlay>
+          <LayersControl.Overlay checked name="Metamorphosis Locations">
+            <LayerGroup>
+              {METAMORPH_LOCATIONS.map((metamorph) => (
+                <SpecialBeastieMarker
+                  key={metamorph.to}
+                  open={
+                    metamorph.to ==
+                    (marker && "to" in marker ? marker.to : undefined)
+                  }
+                  position={metamorph.position}
+                  target={BEASTIE_DATA.get(metamorph.to) as BeastieType}
+                  metamorph={{
+                    from: BEASTIE_DATA.get(metamorph.from) as BeastieType,
+                    by: metamorph.by,
+                  }}
+                />
+              ))}
+            </LayerGroup>
+          </LayersControl.Overlay>
         </LayersControl>
         <Control position="topright">
           <div className={styles.controlBox}>
@@ -371,6 +461,10 @@ export default function Map(): React.ReactNode {
                 setBeastieId={setHuntedBeastie}
                 extraOptionText="Show All"
                 extraOption="all"
+                isSelectable={(beastie) =>
+                  SPAWNABLE_BEASTIES.includes(beastie.id)
+                }
+                nonSelectableReason="Beastie has no wild habitat."
               />
               <div>
                 <input
