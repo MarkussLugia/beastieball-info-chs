@@ -1,6 +1,6 @@
 import { BeastieType } from "../../data/BeastieData";
 import InfoBox from "../../shared/InfoBox";
-import styles from "./ContentPreview.module.css";
+// import styles from "./ContentPreview.module.css";
 import { useTranslation } from "react-i18next";
 
 type Props = {
