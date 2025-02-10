@@ -1,3 +1,4 @@
+import Events from "./Events/Events";
 import { NavigationMenu, NavigationMenuOption } from "./shared/NavigationMenu";
 
 import { useTranslation } from "react-i18next";
@@ -6,7 +7,7 @@ export default function Home(): React.ReactNode {
   const { t } = useTranslation();
 
   return (
-    <NavigationMenu>
+    <NavigationMenu note={<Events />}>
       <NavigationMenuOption
         text={t("playdex.title")}
         image={"/gameassets/sprMainmenu/6.png"}

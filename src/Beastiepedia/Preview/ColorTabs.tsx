@@ -63,8 +63,11 @@ export default function ColorTabs(props: Props): React.ReactNode {
 
   const [currentTabActual, setCurrentTab] = useState("color");
 
+  const isDiffBeastie =
+    diffBeastieColors != "none" && diffBeastieColors != props.beastiedata.id;
+
   let beastiedata = props.beastiedata;
-  if (diffBeastieColors && diffBeastieColors != "none") {
+  if (isDiffBeastie) {
     const newbeastiedata = BEASTIE_DATA.get(diffBeastieColors);
     if (newbeastiedata != undefined) {
       beastiedata = newbeastiedata;
@@ -153,7 +156,7 @@ export default function ColorTabs(props: Props): React.ReactNode {
     !Array.isArray(storedColors[beastiedata.id]);
 
   const [customColors, setCustomColors] = useState<string[]>(
-    diffBeastieColors == "none" && validStoredColors
+    !isDiffBeastie && validStoredColors
       ? storedColors[beastiedata.id].custom
       : defaultColor(colors, beastiedata.colors).custom,
   );
@@ -164,7 +167,7 @@ export default function ColorTabs(props: Props): React.ReactNode {
       return;
     }
     const beastieColors =
-      diffBeastieColors == "none" && validStoredColors
+      !isDiffBeastie && validStoredColors
         ? storedColors[beastiedata.id]
         : defaultColor(colors, beastiedata.colors);
     beastieColors.custom.forEach((value, index) =>
@@ -176,7 +179,7 @@ export default function ColorTabs(props: Props): React.ReactNode {
     beastiedata,
     colorChange,
     colors,
-    diffBeastieColors,
+    isDiffBeastie,
     storedColors,
     validStoredColors,
   ]);
@@ -237,7 +240,7 @@ export default function ColorTabs(props: Props): React.ReactNode {
           colors={beastiedata.colors}
           fallbackColors={props.beastiedata.colors}
           beastieid={props.beastiedata.id}
-          diffBeastie={diffBeastieColors}
+          isDiffBeastie={isDiffBeastie}
           storedColors={storedColors}
           setStoredColors={setStoredColors}
           colorChange={colorChange}
@@ -250,12 +253,12 @@ export default function ColorTabs(props: Props): React.ReactNode {
             colorMax={colors}
             colors={beastiedata.colors2}
             fallbackColors={
-              diffBeastieColors
+              isDiffBeastie
                 ? (props.beastiedata.colors2 ?? props.beastiedata.colors)
                 : beastiedata.colors
             }
             beastieid={props.beastiedata.id}
-            diffBeastie={diffBeastieColors}
+            isDiffBeastie={isDiffBeastie}
             storedColors={storedColors}
             setStoredColors={setStoredColors}
             colorChange={colorChange}
@@ -269,7 +272,7 @@ export default function ColorTabs(props: Props): React.ReactNode {
           colors={beastiedata.shiny}
           fallbackColors={props.beastiedata.shiny}
           beastieid={props.beastiedata.id}
-          diffBeastie={diffBeastieColors}
+          isDiffBeastie={isDiffBeastie}
           storedColors={storedColors}
           setStoredColors={setStoredColors}
           colorChange={colorChange}
@@ -289,7 +292,7 @@ export default function ColorTabs(props: Props): React.ReactNode {
                 colorChange(index, hexToRgb(event.currentTarget.value));
                 customColors[index] = event.currentTarget.value;
                 setCustomColors(customColors);
-                if (diffBeastieColors != "none") {
+                if (isDiffBeastie) {
                   return;
                 }
                 setStoredColors((oldColors) => {
@@ -361,10 +364,12 @@ export default function ColorTabs(props: Props): React.ReactNode {
           Palette Swap:{" "}
           {t(`${ns}.otherBeastie`)}
           <BeastieSelect
-            beastieId={diffBeastieColors}
+            beastieId={isDiffBeastie ? diffBeastieColors : undefined}
             setBeastieId={(beastieId: undefined | string) =>
               setDiffBeastieColors(beastieId ? beastieId : "none")
             }
+            isSelectable={(beastie) => beastie.id != props.beastiedata.id}
+            nonSelectableReason="Select Unset to use this Beastie's regular colors."
           />
         </div>
       </div>
@@ -381,7 +386,7 @@ function BeastieColorTabContent(props: {
   colors: Array<{ array: Array<{ color: number; x: number }> }>;
   fallbackColors: Array<{ array: Array<{ color: number; x: number }> }>;
   beastieid: string;
-  diffBeastie: string;
+  isDiffBeastie: boolean;
   storedColors: StoredType;
   setStoredColors: React.Dispatch<React.SetStateAction<StoredType>>;
   colorChange: (change_index: number, color: number[]) => void;
@@ -395,7 +400,7 @@ function BeastieColorTabContent(props: {
   const colorValues = useRef(props.colorMax.map(() => 0.5));
 
   const lastValue = useRef([false, "", ""]);
-  const currentValue = [current, props.beastieid, props.diffBeastie];
+  const currentValue = [current, props.beastieid, props.isDiffBeastie];
   const changed = lastValue.current.some(
     (value, index) => value == currentValue[index],
   );
@@ -404,7 +409,7 @@ function BeastieColorTabContent(props: {
   const {
     tab,
     colorChange,
-    diffBeastie,
+    isDiffBeastie,
     storedColors,
     beastieid,
     colorMax,
@@ -416,7 +421,7 @@ function BeastieColorTabContent(props: {
     if (!current || !changed) {
       return;
     }
-    if (diffBeastie == "none") {
+    if (!isDiffBeastie) {
       if (storedColors[beastieid] && !Array.isArray(storedColors[beastieid])) {
         colorValues.current = storedColors[beastieid][tab];
       } else {
@@ -446,7 +451,7 @@ function BeastieColorTabContent(props: {
     beastieid,
     colorMax,
     colors,
-    diffBeastie,
+    isDiffBeastie,
     fallbackColors,
     storedColors,
     colorChange,
@@ -481,7 +486,7 @@ function BeastieColorTabContent(props: {
         ),
       );
     });
-    if (diffBeastie == "none") {
+    if (!isDiffBeastie) {
       props.setStoredColors((oldStored) => {
         if (
           !oldStored[props.beastieid] ||
@@ -513,7 +518,7 @@ function BeastieColorTabContent(props: {
       ),
     );
     colorValues.current[index] = newColor;
-    if (props.diffBeastie == "none") {
+    if (!isDiffBeastie) {
       props.setStoredColors((oldStored) => {
         if (
           !oldStored[props.beastieid] ||

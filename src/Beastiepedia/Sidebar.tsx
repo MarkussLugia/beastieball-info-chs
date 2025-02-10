@@ -3,7 +3,11 @@ import styles from "./Sidebar.module.css";
 import BEASTIE_DATA, { BeastieType } from "../data/BeastieData";
 import { useCallback, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
-import Filter, { createFilterString, FilterType, FilterTypes } from "./Filter";
+import Filter, {
+  createFilterFunction,
+  createFilterString,
+  FilterType,
+} from "./Filter";
 import {
   SpoilerMode,
   useSpoilerMode,
@@ -22,24 +26,13 @@ type Props = {
 type StatType = "ba" | "bd" | "ha" | "hd" | "ma" | "md";
 const STATS: StatType[] = ["ba", "bd", "ha", "hd", "ma", "md"];
 
-function getBeastieStatTotal(beastie: BeastieType) {
-  return STATS.reduce((accum, stat) => accum + beastie[stat], 0);
-}
-
-function createFilterFunction(filters: FilterType[]) {
-  if (!filters) {
-    return undefined;
-  }
-  return (beastie: BeastieType) =>
-    filters.every(([type, value]) => {
-      switch (type) {
-        case FilterTypes.Ability:
-          return beastie.ability.includes(value.id);
-        case FilterTypes.Move:
-          return beastie.attklist.includes(value.id);
-      }
-    });
-}
+const OTHER_SORT_DATA: Record<string, (beastie: BeastieType) => number> = {
+  total: (beastie) => STATS.reduce((accum, stat) => accum + beastie[stat], 0),
+  pow: (beastie) => beastie.ba + beastie.ha + beastie.ma,
+  def: (beastie) => beastie.bd + beastie.hd + beastie.md,
+  recruit: (beastie) =>
+    beastie.recruit_value != 0.5 ? beastie.recruit_value : 0,
+};
 
 export default function Sidebar(props: Props): React.ReactElement {
   const beastieid = props.beastieid;
@@ -53,9 +46,10 @@ export default function Sidebar(props: Props): React.ReactElement {
     sort == "name"
       ? (beastie1, beastie2) =>
           beastie1.name.localeCompare(beastie2.name) * sortMult
-      : sort == "total"
+      : OTHER_SORT_DATA[sort]
         ? (beastie1, beastie2) =>
-            (getBeastieStatTotal(beastie1) - getBeastieStatTotal(beastie2)) *
+            (OTHER_SORT_DATA[sort](beastie1) -
+              OTHER_SORT_DATA[sort](beastie2)) *
             sortMult
         : (beastie1, beastie2) =>
             ((beastie1[sort as keyof BeastieType] as number) -
@@ -89,10 +83,11 @@ export default function Sidebar(props: Props): React.ReactElement {
       <div className={styles.controlsContainer}>
         <div className={styles.controls}>
           <input
-            type="text"
+            type="search"
             placeholder="Search Beasties.."
             className={styles.sidebarsearch}
             onChange={(event) => setSearch(event.currentTarget.value)}
+            onFocus={(event) => event.currentTarget.select()}
           />
           <select
             onChange={(event) => setSort(event.currentTarget.value)}
@@ -101,12 +96,15 @@ export default function Sidebar(props: Props): React.ReactElement {
             <option value="number">Number</option>
             <option value="name">Name</option>
             <option value="total">Stat Total</option>
+            <option value="pow">POW Total</option>
+            <option value="def">DEF Total</option>
             <option value="ba">Body POW</option>
             <option value="bd">Body DEF</option>
             <option value="ha">Spirit POW</option>
             <option value="hd">Spirit DEF</option>
             <option value="ma">Mind POW</option>
             <option value="md">Mind DEF</option>
+            <option value="recruit">Recruit $</option>
           </select>
           <button onClick={() => setSortDec(!sortDec)}>
             {sortDec ? "↓" : "↑"}
@@ -139,8 +137,8 @@ export default function Sidebar(props: Props): React.ReactElement {
             beastiedata={beastie}
             statDisplay={
               sort != "number" && !(!grid && sort == "name")
-                ? sort == "total"
-                  ? String(getBeastieStatTotal(beastie))
+                ? OTHER_SORT_DATA[sort]
+                  ? String(OTHER_SORT_DATA[sort](beastie))
                   : (beastie[sort as keyof BeastieType] as string)
                 : ""
             }

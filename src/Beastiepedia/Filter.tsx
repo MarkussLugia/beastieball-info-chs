@@ -1,9 +1,9 @@
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 
 import Modal from "../shared/Modal";
 import abilities, { Ability } from "../data/abilities";
 import styles from "./Filter.module.css";
-import BEASTIE_DATA from "../data/BeastieData";
+import BEASTIE_DATA, { BeastieType } from "../data/BeastieData";
 import TextTag from "../shared/TextTag";
 import MOVE_DIC, { Move } from "../data/MoveData";
 import MoveView from "../shared/MoveView";
@@ -11,11 +11,26 @@ import MoveView from "../shared/MoveView";
 export enum FilterTypes {
   Ability,
   Move,
+  Training,
+  Metamorphs,
 }
+
+type TrainingTypes = "ba" | "ha" | "ma" | "bd" | "hd" | "md";
+const STATS: TrainingTypes[] = ["ba", "bd", "ha", "hd", "ma", "md"];
+const TRAINING_TYPES = {
+  ba: "Body POW",
+  ha: "Spirit POW",
+  ma: "Mind POW",
+  bd: "Body DEF",
+  hd: "Spirit DEF",
+  md: "Mind DEF",
+};
 
 export type FilterType =
   | [FilterTypes.Ability, Ability]
-  | [FilterTypes.Move, Move];
+  | [FilterTypes.Move, Move]
+  | [FilterTypes.Training, TrainingTypes]
+  | [FilterTypes.Metamorphs, boolean];
 
 const beastie_abilities: Ability[] = [];
 const beastie_moves: Move[] = [];
@@ -48,23 +63,41 @@ beastie_moves.sort(
 const FILTER_TYPE_PREFIX: Record<FilterTypes, string> = {
   [FilterTypes.Ability]: "Has Trait: ",
   [FilterTypes.Move]: "Learns Play(s): ",
+  [FilterTypes.Training]: "Trains Allies: ",
+  [FilterTypes.Metamorphs]: "Metamorphs: ",
 };
+
+const FILTER_TYPES = [
+  FilterTypes.Ability,
+  FilterTypes.Move,
+  FilterTypes.Training,
+  FilterTypes.Metamorphs,
+];
 
 export function createFilterString(filters: FilterType[]) {
   const types: Record<FilterTypes, FilterType[]> = {
     [FilterTypes.Ability]: [],
     [FilterTypes.Move]: [],
+    [FilterTypes.Training]: [],
+    [FilterTypes.Metamorphs]: [],
   };
   for (const filter of filters) {
     types[filter[0]].push(filter);
   }
 
-  const FILTER_TYPES = [FilterTypes.Ability, FilterTypes.Move];
-
   return FILTER_TYPES.map<[FilterTypes, string]>((type) => [
     type,
     types[type].reduce(
-      (accum2, filter) => accum2 + (accum2 ? ", " : "") + filter[1].name,
+      (accum2, filter) =>
+        accum2 +
+        (accum2 ? ", " : "") +
+        (filter[0] == FilterTypes.Training
+          ? TRAINING_TYPES[filter[1]]
+          : filter[0] == FilterTypes.Metamorphs
+            ? filter[1]
+              ? "Yes"
+              : "No"
+            : filter[1].name),
       "",
     ),
   ]).reduce(
@@ -73,6 +106,29 @@ export function createFilterString(filters: FilterType[]) {
       (values ? (accum ? " + " : "") + FILTER_TYPE_PREFIX[type] + values : ""),
     "",
   );
+}
+
+export function createFilterFunction(filters: FilterType[]) {
+  if (!filters) {
+    return undefined;
+  }
+  return (beastie: BeastieType) =>
+    filters.every(([type, value]) => {
+      switch (type) {
+        case FilterTypes.Ability:
+          return beastie.ability.includes(value.id);
+        case FilterTypes.Move:
+          return beastie.attklist.includes(value.id);
+        case FilterTypes.Training:
+          return beastie.tyield.some((training) => training == value);
+        case FilterTypes.Metamorphs: {
+          const metamorphs =
+            beastie.evolution?.length &&
+            beastie.evolution.some((evo) => evo.condition[0] != 7); // Not Extinct
+          return value ? metamorphs : !metamorphs;
+        }
+      }
+    });
 }
 
 function AbilityButton({
@@ -117,8 +173,16 @@ export default function Filter({
         exclusive ? filters[0] == value[0] : filters[1] == value[1],
       );
       if (index != -1) {
-        const removed = filters.splice(index, 1);
-        if (exclusive && removed[0][1].id != value[1].id) {
+        const removed = filters.splice(index, 1)[0];
+        const has_id =
+          value[0] != FilterTypes.Training &&
+          removed[0] != FilterTypes.Training &&
+          value[0] != FilterTypes.Metamorphs &&
+          removed[0] != FilterTypes.Metamorphs;
+        if (
+          exclusive &&
+          (has_id ? removed[1].id != value[1].id : removed[1] != value[1])
+        ) {
           filters.push(value);
         }
       } else {
@@ -131,6 +195,18 @@ export default function Filter({
 
   const [tab, setTab] = useState(0);
   const [search, setSearch] = useState("");
+
+  const changeTab = useCallback((value: number) => {
+    setTab(value);
+    setSearch("");
+  }, []);
+
+  const training = filters.find(
+    (filter) => filter[0] == FilterTypes.Training,
+  )?.[1];
+  const metamorph = filters.find(
+    (filter) => filter[0] == FilterTypes.Metamorphs,
+  )?.[1];
 
   return (
     <div
@@ -159,24 +235,34 @@ export default function Filter({
           <div className={styles.tabs}>
             <button
               className={tab == 0 ? styles.selectedtab : undefined}
-              onClick={() => setTab(0)}
+              onClick={() => changeTab(0)}
             >
               Trait
             </button>
             <button
               className={tab == 1 ? styles.selectedtab : undefined}
-              onClick={() => setTab(1)}
+              onClick={() => changeTab(1)}
             >
               Plays
             </button>
+            <button
+              className={tab == 2 ? styles.selectedtab : undefined}
+              onClick={() => changeTab(2)}
+            >
+              Other
+            </button>
           </div>
-          <label>
-            Search:{" "}
-            <input
-              type="search"
-              onChange={(event) => setSearch(event.currentTarget.value)}
-            />
-          </label>
+          {tab < 2 ? (
+            <label>
+              Search:{" "}
+              <input
+                type="search"
+                onChange={(event) => setSearch(event.currentTarget.value)}
+                onFocus={(event) => event.currentTarget.select()}
+                value={search}
+              />
+            </label>
+          ) : null}
           <div onWheel={(event) => event.stopPropagation()}>
             {tab == 0 ? (
               <div className={styles.abilityList}>
@@ -184,6 +270,11 @@ export default function Filter({
                   .filter(
                     (ability) =>
                       !search ||
+                      filters.find(
+                        (filter) =>
+                          filter[0] == FilterTypes.Ability &&
+                          filter[1].id == ability.id,
+                      ) ||
                       ability.name.toLowerCase().includes(search.toLowerCase()),
                   )
                   .map((ability) => (
@@ -210,6 +301,11 @@ export default function Filter({
                   .filter(
                     (move) =>
                       !search ||
+                      filters.find(
+                        (filter) =>
+                          filter[0] == FilterTypes.Move &&
+                          filter[1].id == move.id,
+                      ) ||
                       move.name.toLowerCase().includes(search.toLowerCase()),
                   )
                   .map((move) => (
@@ -232,6 +328,50 @@ export default function Filter({
                     </div>
                   ))}
               </div>
+            ) : null}
+            {tab == 2 ? (
+              <>
+                Ally Training:
+                <br />
+                {STATS.map((type) => (
+                  <button
+                    key={type}
+                    className={
+                      training == type ? styles.trainingSelected : undefined
+                    }
+                    onClick={() =>
+                      handleToggleFilter([FilterTypes.Training, type], true)
+                    }
+                  >
+                    {TRAINING_TYPES[type]}
+                  </button>
+                ))}
+                <br />
+                Metamorphosis:
+                <br />
+                <button
+                  className={
+                    metamorph === false ? styles.trainingSelected : undefined
+                  }
+                  onClick={() =>
+                    handleToggleFilter([FilterTypes.Metamorphs, false], true)
+                  }
+                >
+                  Does not Metamorph
+                </button>
+                <button
+                  className={
+                    metamorph === true ? styles.trainingSelected : undefined
+                  }
+                  onClick={() =>
+                    handleToggleFilter([FilterTypes.Metamorphs, true], true)
+                  }
+                >
+                  Does Metamorph
+                </button>
+                <br />
+                (Except for specific Metamorphosis types)
+              </>
             ) : null}
           </div>
         </Modal>

@@ -8,7 +8,18 @@ export type Gift = {
   y: number;
 };
 
-export const EXTRA_MARKERS: { gifts: Gift[] } = extra_markers;
+export type Switch = {
+  lever_id: string;
+  position: number[];
+};
+
+export type Wall = { position: number[]; angle: number };
+
+export const EXTRA_MARKERS: {
+  gifts: Gift[];
+  switches: Switch[];
+  walls: Record<string, Wall[]>;
+} = extra_markers;
 
 export type MapIcon = {
   _: string;

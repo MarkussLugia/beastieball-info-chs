@@ -79,6 +79,7 @@
 
 .settingslogo {
   height: 30px;
+  image-rendering: pixelated;
 }
 
 .settingsContainer {
@@ -165,10 +166,10 @@
   height: 100%;
 
   /* https://frontendmasters.com/blog/pure-css-halftone-effect-in-3-declarations/ */
-  --dot: radial-gradient(closest-side, #666, #fff calc(100% / sqrt(2)));
+  --dot: radial-gradient(closest-side, #666, #fff calc(100% / sqrt(1.2)));
   --pattern: var(--dot) 0 0/ 1.5em 1.5em, var(--dot) 0.75em 0.75em/ 1.5em 1.5em;
   background-color: white;
-  background: var(--pattern), var(--map, linear-gradient(330deg, #777, #fff));
+  background: var(--pattern), var(--map, linear-gradient(330deg, #777, #eee));
   background-blend-mode: multiply;
   filter: contrast(16);
   mix-blend-mode: screen;
@@ -210,10 +211,8 @@
 .movedesc {
   font-size: 1.3em;
   overflow-y: auto;
-  height: 67%;
-  display: flex;
-  justify-content: end;
-  align-items: center;
+  margin: auto 0;
+  padding-bottom: 4px;
   z-index: 1;
 }
 
@@ -263,7 +262,11 @@
 }
 
 .beastieSelectContainer {
-  width: round(down, 90vw, 245px);
+  width: calc(round(down, 90vw, 245px) + 13px);
+  height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .beastieSelect {
@@ -271,9 +274,9 @@
   flex-wrap: wrap;
   gap: 5px;
   width: 100%;
-  height: 100%;
-  justify-content: center;
+  overflow-y: auto;
   align-content: flex-start;
+  padding-bottom: 8px;
 }
 
 .beastieSelectBeastie {
@@ -298,6 +301,7 @@
 .beastieSelectBeastieIm {
   flex-shrink: 1;
   max-height: calc(100% - 10px);
+  flex-shrink: 1;
   margin-left: 5px;
   max-width: 50%;
 }
@@ -312,4 +316,29 @@
 .beastieSelectNum {
   font-family: var(--sports-jersey);
   font-size: 2em;
+}
+
+.beastieSelectNum::first-letter {
+  font-size: 0.85em;
+}
+
+@media all and (max-width: 544px) {
+  .beastieSelectBeastie {
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    height: 110px;
+  }
+  .beastieSelectNameNum {
+    flex-direction: row;
+    flex-grow: 0;
+  }
+  .beastieSelectNum {
+    font-size: 0.8em;
+    padding-top: 0.5px;
+  }
+  .beastieSelectNum::after {
+    content: "-";
+    color: transparent;
+  }
 }

@@ -61,7 +61,9 @@ export function createMarkers() {
         markertype = imgheaders["Other"];
       }
       markerup = <img src={`/gameassets/sprSponsors/${value.img}.png`} />;
-      popup = <>{value.revealed_text ? value.revealed_text : value.text}</>;
+      popup = (
+        <Popup>{value.revealed_text ? value.revealed_text : value.text}</Popup>
+      );
     } else {
       if (value.from_object == "objHiddenObject") {
         return;
@@ -80,11 +82,12 @@ export function createMarkers() {
           alt: value.revealed_text ? value.revealed_text : value.text,
           zIndexOffset: zindex,
         }}
-        container={{ tagName: "div", className: containerclass }}
+        tagName="div"
+        className={containerclass}
         icon={{ className: styles.hidemarker }}
+        popup={popup}
       >
         {markerup}
-        {popup ? <Popup>{popup}</Popup> : null}
       </DivIconMarker>,
     );
   }
