@@ -4,6 +4,9 @@ import { ErrorBoundary } from "react-error-boundary";
 import { BallEvent, EventResponse, NoEvent } from "./Types";
 import styles from "./Events.module.css";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
+const ns = "events";
 
 function updateBigmoon(setBigmoon: (event: NoEvent | BallEvent) => void) {
   fetch("https://api.beastieballgame.com/api/events")
@@ -53,6 +56,8 @@ function EventBlock({ children }: { children: React.ReactNode }) {
 }
 
 function TimeDelta({ startDate, endDate }: { startDate: Date; endDate: Date }) {
+  const { t } = useTranslation();
+
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -90,15 +95,20 @@ function TimeDelta({ startDate, endDate }: { startDate: Date; endDate: Date }) {
         }}
       ></div>
       <div>
-        {usingStartDate ? "Starts in " : future ? "Ends in " : "Ended "}
+        {t(`${ns}.timePrefix`)}
         {days >= 1
-          ? `${days} ${days == 1 ? "day" : "days"}${hoursRounded > 0 ? `, ${hoursRounded} ${hoursRounded == 1 ? "hour" : "hours"}` : ""}`
+          ? ` ${days} ${t(`${ns}.day`)}${hoursRounded > 0 ? ` ${hoursRounded} ${t(`${ns}.hour`)}` : ""}`
           : hours >= 1
-            ? `${hours} ${hours == 1 ? "hour" : "hours"}, ${minutes} ${minutes == 1 ? "minute" : "minutes"}`
+            ? `${hours} ${t(`${ns}.hour`)}, ${minutes} ${t(`${ns}.minute`)}`
             : minutes >= 1
-              ? `${minutes} ${minutes == 1 ? "minute" : "minutes"}, ${seconds}s`
-              : `${seconds} ${seconds == 1 ? "second" : "seconds"}`}
+              ? `${minutes} ${t(`${ns}.minute`)}, ${seconds} ${t(`${ns}.second`)}`
+              : `${seconds} ${t(`${ns}.second`)}`}
         {future ? "" : " ago"}
+        {usingStartDate
+          ? t(`${ns}.startsIn`)
+          : future
+            ? t(`${ns}.endsIn`)
+            : t(`${ns}.ended`)}
       </div>
     </>
   );
@@ -113,6 +123,7 @@ const DATETIME_FORMATTER: Intl.DateTimeFormat = new Intl.DateTimeFormat(
 );
 
 function Bigmoon({ bigmoon }: { bigmoon: BallEvent }) {
+  const { t } = useTranslation();
   const startDate = new Date(bigmoon.times[0][0]);
   const endDate = new Date(bigmoon.times[0][1]);
   return (
@@ -125,14 +136,16 @@ function Bigmoon({ bigmoon }: { bigmoon: BallEvent }) {
           Bigmoon Bash
         </Link>
         <TimeDelta startDate={startDate} endDate={endDate} />
-        <div>From: {DATETIME_FORMATTER.format(startDate)}</div>
-        <div>Until: {DATETIME_FORMATTER.format(endDate)}</div>
+        <div>{t(`${ns}.from`)}{"："}{DATETIME_FORMATTER.format(startDate)}</div>
+        <div>{t(`${ns}.until`)}{"："}{DATETIME_FORMATTER.format(endDate)}</div>
       </div>
     </EventBlock>
   );
 }
 
 export default function Events() {
+  const { t } = useTranslation();
+
   const [open, setOpen] = useState(false);
 
   const [bigmoon, bigmoonReload] = useBigmoon(open);
@@ -146,15 +159,16 @@ export default function Events() {
           onClick={() => setOpen(!open)}
           tabIndex={0}
         >
-          Events
+          {t(`${ns}.title`)}
         </div>
         <div className={open ? styles.openBox : styles.closedBox}>
           {bigmoon == NoEvent.WaitingForResponse ? (
-            <EventBlock>Loading...</EventBlock>
+            <EventBlock>{t(`${ns}.loading`)}</EventBlock>
           ) : bigmoon == NoEvent.NoEvent ? (
             <EventBlock>
-              <img className={styles.wahhhhwahhhh} src="/nojs.png" /> No Event{" "}
-              <button onClick={bigmoonReload}>Reload</button>
+              <img className={styles.wahhhhwahhhh} src="/nojs.png" />
+              {t(`${ns}.noEvent`)}{" "}
+              <button onClick={bigmoonReload}>{t(`${ns}.reload`)}</button>
             </EventBlock>
           ) : (
             <Bigmoon bigmoon={bigmoon} />
